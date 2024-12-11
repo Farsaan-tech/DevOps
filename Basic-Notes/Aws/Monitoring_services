@@ -1,0 +1,84 @@
+                                                 Monitoring Services
+                                                 ===================
+Cloudtrial:
+===========
+Cloudtrail is a service that enables governance,compliance,Operational auditing
+and risk auditing of our aws account.
+Cloudtrial is a service which helps us to track the activities
+in aws account.
+It records all the activities done by user,roles and aws services.
+These recorded sessions are called as EVENTS.
+CloudTrail is enabled on your AWS account when you create it.
+View events in Event History, where you can view, search, 
+and download the past 90 days of activity in your AWS account.
+
+Type of Log events:
+===================
+1) Management Events
+Capture management operations performed on aws resources.
+Free of cost for one management event by aws.
+Management Events will be created by default.
+Ex: who signed in at what time and other api calls
+execute on resources.
+
+2)Data Events:
+Log the resource operations performed on or within a resource.
+Ex: when user uploaded,deleted and downloaded files in s3.
+
+3)Insight Events:
+Identify unusual activity, errors, or user behavior in your account.
+Ex:Unauthorized API calls indicate someone tried to perform an action
+in your AWS account that they did not have permission to carry out.
+
+Cloudwatch:
+===========
+CloudWatch is a service used to monitor your AWS resources and applications that you run on AWS in real time. CloudWatch is used to collect and track metrics that measure your resources and applications.
+It displays the metrics automatically about every AWS service that you choose.
+You can create the dashboard to display the metrics about your custom application
+and also display the metrics of custom collections that you choose.
+You can also create an alarm to watch metrics. 
+For example, you can monitor CPU usage, disk read and disk writes of Amazon EC2 instance to determine whether the additional EC2 instances are required to handle the load or not. 
+It can also be used to stop the instance to save money.
+
+What is Cloudwatch Agent?
+=========================
+Cloud watch agents are responsible to push the metrics to cloudwatch dashboard.
+Agents needs to be up and running on the ec2.
+
+What is Metric?
+===============
+Metrics are a measurement at a point in time for the system.
+
+Types of Metrics:
+=================
+Cpu utilization
+DiskReadOps
+DiskWriteOps
+DiskReadBytes
+DiskWriteBytes
+NetworkIn and NetworkOut
+NetworkPacketsIn and NetworkPacketsOut
+MetadataNoToken
+
+What is Alarm?
+=============
+Cloudwatch alarm is used to monitor a single cloud watch 
+metric or the result of Match expression using cloud watch metrics. 
+Also, it sends out a notification based on the threshold we set for 
+each service in the cloud watch alarm.
+
+Type of Alarms:
+===============
+There are 3 alarm states:
+OK – Within Threshold.
+ALARM – Crossed Threshold.
+INSUFFICIENT_DATA – Metric not available/ Missing data (Good, Bad, Ignore, Missing).
+
+What is cloudwatch log group?
+=============================
+A log stream is a sequence of log events that share the same source. 
+Each separate source of logs in CloudWatch Logs makes up a separate log stream.
+
+What is cloudwatch Events?
+==========================
+CloudWatch Events help you to respond to state changes to your AWS resources.

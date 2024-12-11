@@ -1,0 +1,41 @@
+1)default users in a instance is "root" and "ec2-user"
+
+2) root is the superuser for instance.
+   we can execute any command with root user.
+3) ec2-user is the normal user for instance.
+   if we want to execute commands using ec2-user then we need to use "sudo"
+   sudo --> super user do
+   Ex:- sudo yum intsall git.
+
+1:How to create a user in instance:
+================================
+
+1)Login to root or ec2-user.
+2) useradd betawins
+3)passwd betawins
+4)enter new pasword for betawins
+5) check if user is created or not
+   cat /etc/passwd
+
+2:How to add created user to sudoers file:
+=======================================
+1) find / -name sudoers
+2) vi /etc/sudoers
+3) Add created users in sudoers file
+Ex:  ## Allow root to run any commands anywhere
+root    ALL=(ALL)       ALL
+Dexter   ALL=(ALL)       ALL
+betawins  ALL=(ALL)       ALL
+
+3:how to login to aws instance with the newly created user:
+=========================================================
+1) by default only ec2-user can login to aws instance.
+2) open file sshd_config
+  vi /etc/ssh/sshd_config
+3) enable "PasswordAuthentication" to yes. (By default it will be no)
+4) Restart sshd service.
+  -> systemctl restart sshd
+5) login with the new user
+6) Success Done !!
+
+

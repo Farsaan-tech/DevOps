@@ -1,0 +1,37 @@
+# Install Apache HTTPD
+======================
+sudo yum -y update
+sudo yum install httpd
+
+Start Apache HTTPD
+systemctl start httpd
+systemctl enable httpd
+systemctl status httpd
+
+# Setup website in default virtual host
+ vi /var/www/html/index.html
+
+<html>
+<head>
+  <title> Amazon rocks! </title>
+</head>
+<body>
+  <p> I'm running this website on an Amazon!
+</body>
+</html>
+
+Logs: /var/log/apache2 or /var/log/httpd
+Deployment location : /var/www/html/
+===========================================================================================
+Install nginx:
+==============
+sudo amazon-linux-extras install nginx1
+systemctl enable nginx
+systemctl start nginx
+systemctl status nginx
+
+Log file: /var/log/nginx
+Confpath: /etc/nginx/nginx.conf
+
+Deployment path:  /usr/share/nginx/html
+

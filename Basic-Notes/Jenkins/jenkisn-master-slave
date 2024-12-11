@@ -1,0 +1,65 @@
+Configure Jenkins Slaves on AWS EC2
+Jenkins is a self-contained Java-based program, ready to run out-of-the-box, with packages for Windows, Mac OS X and other Unix-like operating systems. As an extensible automation server, Jenkins can be used as a simple CI server or turned into the continuous delivery hub for any project.
+Follow this article in Youtube
+ 
+Prerequisites
+1.	Jenkins Master Running Get help here
+2.	EC2 RHEL 7.x Instance - for Slave Node Get help here
+->	With Internet Access
+->	Security Group with Port 8080 open for internet
+->	Java v1.8.x
+#Install Java
+#We will be using open java for our demo, Get latest version from http://openjdk.java.net/install/. Also configure the default JAVA_HOME path
+1)  yum install java-1.8*
+        (or)
+2)  yum -y install java-1.8.0-openjdk
+3)  java -version
+4) find /usr/lib/jvm/java-1.8* | head -n 3
+#JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.191.b12-1.el7_6.x86_64
+# To set it permanently update your .bash_profile
+6) vi .bash_profile
+#Sample Example of .bahs_profile file:
+====================================
+# .bash_profile
+	
+
+# Get the aliases and functions
+if [ -f ~/.bashrc ]; then
+        . ~/.bashrc
+fi
+	
+
+# User specific environment and startup programs
+JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.232.b09-2.el8_1.x86_64
+PATH=$PATH:$HOME/bin:$JAVA_HOME/bin
+	
+
+export PATH
+=========================================================================
+#Restart the .bash_profile to reflect the changes.
+7) source ~/.bash_profile
+
+#Setup Jenkins Slave
+====================
+# Create user and add the user to wheel group
+useradd jenkins-slave-01
+# Create SSH Keys
+sudo su - jenkins-slave-01
+ssh-keygen -t rsa -N "" -f /home/jenkins-slave-01/.ssh/id_rsa
+# The private and public keys will be created at these locations `/home/jenkins-slave-01/.ssh/id_rsa` and `/home/jenkins-slave-01/.ssh/id_rsa.pub`
+cd .ssh
+cat id_rsa.pub > authorized_keys
+chmod 700 authorized_keys
+
+Configuration on Master
+========================
+Copy the slave node's public key[id_rsa.pub] to Master Node's known_hosts file
+mkdir -p /var/lib/jenkins/.ssh
+cd /var/lib/jenkins/.ssh
+ssh-keyscan -H SLAVE-NODE-IP-OR-HOSTNAME >>/var/lib/jenkins/.ssh/known_hosts
+# ssh-keyscan -H 172.31.38.42 >>/var/lib/jenkins/.ssh/known_hosts
+chown jenkins:jenkins known_hosts
+#we need to change the owner as we ran ssh-keyscan command using “root” user.
+# default user of Jenkins will be “jenkins”
+chmod 700 known_hosts
+# DOne !!

@@ -1,0 +1,35 @@
+#Install Maven on linux-machine:
+Pre-requisites:
+1) Java 1.8
+
+#How to install maven:
+1) Change to opt direcotry
+cd /opt
+2) Download maven
+wget https://mirrors.estointernet.in/apache/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
+3) Extract the maven tar file
+tar xvf apache-maven-3.6.3
+4) Export maven homepath in .bash_profile
+##################
+# .bash_profile
+
+# Get the aliases and functions
+if [ -f ~/.bashrc ]; then
+        . ~/.bashrc
+fi
+
+# User specific environment and startup programs
+MVN_HOME=/opt/apache-maven-3.6.3
+JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.282.b08-1.amzn2.0.1.x86_64
+PATH=$PATH:$HOME/bin:$JAVA_HOME/bin:$MVN_HOME/bin
+
+export PATH
+##########################################################
+5) Restart the .bash_profile
+source ~/.bash_profile
+6) Check for MVN_HOME
+echo $MVN_HOME
+7) Done!!
+
+
+https://www.tutorialspoint.com/maven/maven_pom.htm

@@ -1,0 +1,8 @@
+1) Default port : 8080
+2) Jenkins home directory : /var/lib/jenkins
+3) Jenkins port config file : /etc/sysconfig/jenkins
+4) Jenkins secrets key : /var/lib/jenkins/secrets/initialAdminPassword
+5) Jenkins Task logs : /var/lib/jenkins/logs
+6) Jenkins app logs: /var/log/jenkins/jenkins.log
+7) Jenkins jobs: /var/lib/jenkins/jobs
+8) Jenkins workspace: /var/lib/jenkins/workspace

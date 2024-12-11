@@ -1,0 +1,354 @@
+Bash_scripting:
+==============
+What is kernel:
+=============
+kernel is a interface between your hardware and software.
+
+
+User --> Applciation --> shell --> kernel --> hardware.
+
+
+Hardware: CPU,Memory
+Kernel: Programs
+Shell: GUI,bash
+Application: Browser,calendar other softwares.
+User: Users.
+
+
+SHell and Kernel together built in one package called O.S.
+Application and shell are called as Software.
+
+If we exwcute any command then shell will talk to kernel and kernel will communicate with Hardware and execute the operations.
+
+
+What is Shell:
+=============
+Interface between users and Kernel/OS
+CLI is a shell
+GUI is a shell.
+
+Find your shell:
+===============
+echo $0  --> WHich shell you are using
+cat /etc/shells --> Available shell
+cat /etc/passwd --> To know which shell user is assigned with.
+
+Types of shells:
+===============
+Gnome : graphical environment in linux.(Desktop GUI)
+KDE : Another Graphical environment in linux.
+sh : Shell (Bourne Shell,developed by unix by stepehn bourne.)
+Bash: New feature of shell with enhancement. (Bourne Again shell)
+csh anmd tcsh : c shell and Tenex c shell advance version on cshell
+ksh : Korn shell 
+
+Starting a shell:
+================
+By default every user will have a shell configured.
+Cat /etc/passwd we can see the user name with shell configured.
+if want to switch to other shell then execute sh and do echo $0
+same for other shells as well.
+
+How to run a script:
+====================
+Absolute Path: /home/sabair/scripts/xyz-script
+Relative Path: cd /home/sabair/scripts
+               ./xyz-script
+
+Bash script_name
+./script_name 
+
+Scripting Standards:
+===================
+Script naming conventions:
+=========================
+1) Always create a directory to store scripts
+2) Script name should identify the function
+3) Script should end with .shell (If multiple shells are used) ex: .sh .bash
+
+Script File Permissions:
+=======================
+All scripts to be executed should have proper executable file permissions.
+
+eg: rwxr-xr-x
+To change permissions
+chmod 755 file_name
+
+Script Format:
+=============
+Steps which will help the other users to understand our script easily.
+
+1) Define shell (#!/bin/bash)
+2) Comments (# comments)
+3) Define vairbales ( e.g name=sabair)
+4) Commands (echo ,cp ,grep etc.)
+5) Statements (if,while,for etc)
+
+
+Example:
+
+#!/bin/bash
+# Purpose: Testing script format
+#Date: 09/05/2023
+#Modification: 09/05/2023
+a='sabair'
+echo $a
+date
+	if { $a -eq file}
+ 	then echo $a
+ 	else
+	echo that
+ 	fi
+
+Sequence script:
+===============
+Script will execute from top to bottom
+Ex:
+ls
+date
+history
+
+Basic Shell Scripts:
+====================
+Create a basic script with output: Hello World!
+
+Basic Second script:
+===================
+#!/bin/bash
+pwd
+ls
+whoami
+date
+cal
+touch a b c
+
+Basic Administration Tasks:
+===========================
+top
+df -h
+free -m
+uptime
+iostat
+
+top get stucks because that will conitnously montior.
+use top | head -10 
+
+Defining Variables:
+===================
+
+In programming, a variable is a value that can change, depending on conditions or on information passed to the program.
+
+Example:
+
+#!/bin/bash
+#Define Variables
+p=pwd
+l=ls
+wi=whoami
+d=date
+c='cal 2023'
+
+echo Run Variables tasks
+echo
+$p
+$l
+$wi
+$d
+$c
+
+Input/Output script:
+==================
+read --> To take command from user
+echo --> to print the output
+
+Ex1:
+#!/bin/bash
+echo Hello, my name is sabair
+echo
+echo what is your name?
+read name
+echo
+echo Hello $name
+echo
+
+Ex2:
+#!/bin/bash
+      
+#we need to use the ticks if you want to use this in echo or else not required
+a=`hostname`
+echo Hello, my name is $a
+echo
+echo what is your name?
+read b
+echo
+echo Hello $b
+echo
+
+Conditions/ifelse statements:
+============================
+
+If then statement
+If this happens =do this
+otherwise       =do that
+
+Ex:
+#!/bin/bash
+count=100
+if [ $count -eq 100 ]
+then
+echo count is 100
+else
+echo count is not 100
+fi
+
+Ex2:
+check if file is available
+#!/bin/bash
+if [ -e /home/error.txt]
+then
+echo "File exist"
+else
+echo "File does not exist"
+fi
+
+Case Statement Scripts:
+======================
+This will be used when we have multiple options to script
+
+Case 
+
+if option a is selected = do this
+if option b is selected = do this
+
+Ex:
+
+#!/bin/bash
+
+echo
+echo Please chose one of the options below
+echo
+echo 'a = Display Date and Time'
+echo 'b = List file and directories'
+echo 'c = List users logged in'
+echo 'd = Check System uptime'
+echo
+
+        read choices
+
+        case $choices in
+
+a) date;;
+b) ls;;
+c) who;;
+d) uptime;;
+*) echo Invalid choice - Bye.
+
+                esac
+
+For Loop Scripts:
+================
+
+For loop keeps running until specified number of variable.
+e.g: variable = 10 then script run for 10 times.
+
+or
+
+varible = green,blue,red (then run the script 3 times for each color)
+
+Ex:1
+
+#!/bin/bash
+
+for i in 1 2 3 4 5
+do
+echo "Welcome $i times"
+done
+
+Ex:2
+
+for i in eat run jump play
+do
+echo See Imran $i
+done
+
+Do-while Scripts:
+================
+This will continually executed a block of statements while a particular condition is true or met.
+
+e.g: Run a script until 2 pm
+
+while [ condition ]
+do
+command 1
+command 2
+commandN
+done
+
+Ex1:
+
+#!/bin/bash
+
+count=0
+num=10
+while [ $count -lt 10 ]
+do
+        echo
+        echo $num seconds left to stop this process $1
+        echo
+        sleep 1
+
+num=`expr $num - 1`
+count=`expr $count + 1`
+done
+echo
+echo $1 process is stopped!!!
+echo
+
+Exit status:
+===========
+Everytime a command is execute in linux it will have status is associated with it.
+
+*) 0 = ok or successful
+*) 1 = Minor problem
+*) 2 = serious problem
+*) 3-255 = Everything else
+
+
+Why do we need exit status?
+We actually do lot of comparisions in scripting and if the command is successful then do that or else do that.
+
+How to check the exit status of previous execute command?
+exit $?
+
+Ex1:
+#!/bin/bash
+
+echo hello
+echo $?
+
+
+Ex2:
+Return Un-Successful Exist Status
+
+#!/bin/bash
+
+echi hello
+echo $?
+
+Ex3:
+Return exist status if file exist
+
+#!/bin/bash
+
+ls -l /home/sabair/check
+
+if [ $? -eq 0 ]
+then
+echo File exist
+else
+echo File does not exist
+fi
+
+Cornjobs:
+========
+Cronjobs is used to run script without any manual intervention.

@@ -1,0 +1,52 @@
+Configure Jenkins Slaves on AWS EC2
+Jenkins is a self-contained Java-based program, ready to run out-of-the-box, with packages for Windows, Mac OS X and other Unix-like operating systems. As an extensible automation server, Jenkins can be used as a simple CI server or turned into the continuous delivery hub for any project.
+Follow this article in Youtube
+ 
+Prerequisites
+1.	Jenkins Master Running Get help here
+2.	EC2 RHEL 7.x Instance - for Slave Node Get help here
+->	With Internet Access
+->	Security Group with Port 8080 open for internet
+->	Java v1.8.x
+#Install Java
+#We will be using open java for our demo, Get latest version from http://openjdk.java.net/install/. Also configure the default JAVA_HOME path
+1)  yum install java-1.8*
+        (or)
+2)  yum -y install java-1.8.0-openjdk
+3)  java -version
+4) find /usr/lib/jvm/java-1.8* | head -n 3
+#JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.191.b12-1.el7_6.x86_64
+# To set it permanently update your .bash_profile
+6) vi .bash_profile
+#Sample Example of .bahs_profile file:
+====================================
+# .bash_profile
+	
+
+# Get the aliases and functions
+if [ -f ~/.bashrc ]; then
+        . ~/.bashrc
+fi
+	
+
+# User specific environment and startup programs
+JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.232.b09-2.el8_1.x86_64
+PATH=$PATH:$HOME/bin:$JAVA_HOME/bin
+	
+
+export PATH
+=========================================================================
+#Restart the .bash_profile to reflect the changes.
+7) source ~/.bash_profile
+
+Got to Jenkins home url:8080
+got to manage nodes
+select new node
+in codfiguration select "launch via ssh"
+in Host port --> slave IP
+select slave credentials
+(credentials should be stored ..)
+pem key credentials whgich we used to login to server should be copied and stored in keygen.
+In host key verificationj strategy: select "Non verifying verification strategy"
+
+Done!!

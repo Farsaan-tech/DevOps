@@ -1,0 +1,37 @@
+AutoScaling Groups:
+===================
+ASG is used to scale up and scale down instances based on certian metrics.
+
+Example: If cpu utilization is more than 70 for 5 mins then new instances will be launched using ASG.
+
+Scaling Options:
+================
+1) vertical Scaling
+We add more power to existing instances.
+t2.micro --> t2.medium
+
+2) Horizontal scaling
+Add more instances to the environment.
+if we have 1 ec2 instance then it will add 1 new ec2 instance.
+
+ASG will work based on launch configuration and launch template.
+
+We have 3 types os states in ASG.
+
+Minimum : 1
+Desired : 2
+maximum : 5
+
+Desired should be always greater than minimum.
+
+Launch Template and launch Configurations:
+==========================================
+
+Both launch template and launch configurations are similar.
+
+Launc template support multiple versions of templates.
+We can edit or override some parametes in launch template and it is recomended by aws.
+
+Launch configurations are not edited and if we want to update any thing then
+we need to create new launch configuration again.
+Not recomended by aws.

@@ -1,0 +1,147 @@
+# Tomcat installation on EC2 instance
+
+### Follow this article in **[YouTube](https://www.youtube.com/watch?v=m21nFreFw8A)**
+### Prerequisites
+1. EC2 instance with Java v1.8.x 
+1. Java v1.8.x 
+
+## Install Java
+We will be using open java for our demo, Get latest version from http://openjdk.java.net/install/
+```sh
+yum install java-1.8*
+
+```
+
+### Confirm Java Version
+Lets install java and set the java home
+```sh
+java -version
+find /usr/lib/jvm/java-1.8* | head -n 3
+#JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.191.b12-1.el7_6.x86_64
+# To set it permanently update your .bash_profile
+vi .bash_profile
+Sample Example of .bahs_profile file:
+====================================
+# .bash_profile
+
+# Get the aliases and functions
+if [ -f ~/.bashrc ]; then
+        . ~/.bashrc
+fi
+
+# User specific environment and startup programs
+JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.232.b09-2.el8_1.x86_64
+PATH=$PATH:$HOME/bin:$JAVA_HOME/bin
+
+export PATH
+=========================================================================
+#Restart the .bash_profile to reflect the changes.
+
+source ~/.bash_profile
+```
+_The output should be something like this,_
+```
+[root@~]# java -version
+openjdk version "1.8.0_151"
+OpenJDK Runtime Environment (build 1.8.0_151-b12)
+OpenJDK 64-Bit Server VM (build 25.151-b12, mixed mode)
+```
+
+### Install Apache Tomcat
+Download tomcat packages from  https://tomcat.apache.org/download-80.cgi onto /opt on EC2 instance
+```sh 
+  # create tomcat directory
+  cd /opt
+  wget https://mirrors.estointernet.in/apache/tomcat/tomcat-9/v9.0.50/bin/apache-tomcat-9.0.50.tar.gz
+  tar -xvzf /opt/apache-tomcat-9.0.50.tar.gz
+```
+give executing permissions to startup.sh and shutdown.sh which are under bin. 
+```sh
+   chmod +x /opt/apache-tomcat-8.5.35/bin/startup.sh shutdown.sh
+```
+
+create link files for tomcat startup.sh and shutdown.sh 
+```sh
+  ln -s /opt/apache-tomcat-9.0.29/bin/startup.sh /usr/local/bin/tomcatup
+  ln -s /opt/apache-tomcat-9.0.29/bin/shutdown.sh /usr/local/bin/tomcatdown
+  tomcatup
+```
+#### check point :
+access tomcat application from browser on port 8080  
+http://<Public_IP>:8080
+
+Using unique ports for each application is a best practice in an environment. But tomcat and Jenkins runs on ports number 8080. Hence lets change tomcat port number to 8090. Change port number in conf/server.xml file under tomcat home
+```sh
+cd /opt/apache-tomcat-8.5.35/conf
+# update port number in the "connecter port" field in server.xml
+# restart tomcat after configuration update
+tomcatdown
+tomcatup
+```
+#### check point :
+access tomcat application from browser on prot 8090  
+http://<Public_IP>:8090
+
+now application is accessible on port 8090. but tomcat application doesnt allow to login from browser. changing a default parameter in context.xml does address this issue
+```sh
+#search for context.xml
+find / -name context.xml
+```
+above command gives 3 context.xml files. comment (<!-- & -->) `Value ClassName` field on files which are under webapp directory. 
+After that restart tomcat services to effect these changes
+```sh 
+tomcatdown
+tomcatup
+```
+Update users information in the tomcat-users.xml file
+goto tomcat home directory and Add below users to conf/tomcat-user.xml file
+```sh
+	<role rolename="manager-gui"/>
+	<role rolename="manager-script"/>
+	<role rolename="manager-jmx"/>
+	<role rolename="manager-status"/>
+	<user username="admin" password="admin" roles="manager-gui, manager-script, manager-jmx, manager-status"/>
+	<user username="deployer" password="deployer" roles="manager-script"/>
+	<user username="tomcat" password="s3cret" roles="manager-gui"/>
+```
+Restart serivce and try to login to tomcat application from the browser. This time it should be Successful
+
+
+==============================================================================================
+
+# Install Apache HTTPD
+======================
+sudo yum -y update
+sudo yum install httpd
+
+Start Apache HTTPD
+systemctl start httpd
+systemctl enable httpd
+systemctl status httpd
+
+# Setup website in default virtual host
+ vi /var/www/html/index.html
+
+<html>
+<head>
+  <title> Amazon rocks! </title>
+</head>
+<body>
+  <p> I'm running this website on an Amazon!
+</body>
+</html>
+
+Logs: /var/log/apache2 or /var/log/httpd
+Deployment location : /var/www/html/
+===========================================================================================
+Install nginx:
+==============
+sudo amazon-linux-extras install nginx1
+systemctl enable nginx
+systemctl start nginx
+systemctl status nginx
+
+Log file: /var/log/nginx
+Confpath: /etc/nginx/nginx.conf
+
+Deployment path:  /usr/share/nginx/html

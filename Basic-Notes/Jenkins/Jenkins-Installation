@@ -1,0 +1,21 @@
+Prerequisite to Install jenkins is java.
+
+Download jenkins Repo:
+=====================
+sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo  
+
+Import the jenkins key:
+======================	
+sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+
+Update ec2:
+==========
+sudo yum upgrade
+
+Add required dependencies for the jenkins package:
+=================================================
+sudo amazon-linux-extras install java-openjdk11
+
+Install Jenkins:
+===============
+sudo yum install jenkins

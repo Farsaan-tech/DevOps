@@ -1,0 +1,111 @@
+shell and terminal:
+shell is a program which takes input and gives output.
+Terminal is a tool to execute the shell commands,is also called as CLI(Command line interface).
+
+/ (Forward slash) root directory
+
+~ (Tild) home directory
+
+pwd - preset working directory
+cd - change directory
+cd .. - one step back
+cd ../.. two steps back
+ls - list
+ls -l list long
+ls -a list of files+hidden files
+ls -la hidden files+ long list
+ls -lS list of files in sorting format(Higher volumes to lower)
+ls -d */ list all the directories only
+
+I/O redirection:
+echo "hello world" > test.txt - store the value in text.txt (> it will override the file)
+echo "hello world" >> test.txt - append the file
+
+permissions
+d(directory)rwx(owner/user)rwx(group)rwx(others)
+-(file)rwxrwxrwx
+r-read=4
+w-write=2
+x-execute=1
+
+cat fileame.txt - To Read content of file
+cat filename1.txt filename2.txt - To read content of two files
+cat -b filename.txt - View content with line number and it will ignore empty lines.
+cat -n filename.txt - view content with line number and it will not ignore empty lines.
+
+mkdir sabair - create a directory
+mkdir sabair/hello - crearte a directory hello  in sabair
+mkdir -p sabair/hello - create a directory sabair and hello under sabair
+
+rm file_name - remove/delete a file
+rm -rf - remove/delete a directory
+
+cp filename /destinatio_path - copy a file to destination folder
+mv file1 file2 - rename a file from file1 to file2
+mv file1 /destiantion - move file from one location to another
+wc file_name - wordcount of file(display number of lines in files)
+
+head -3 file_name - top 3 lies of file
+tail -2 file_name - last two lies of file
+tail -F file_name - continously monitor file_name
+less file_name - show less part of file(as much as terminal allows)
+touch file_name - create a zero byte file
+
+sudo -(superuserdo)
+It allows you to get some extra priviliges as the admin does.
+sudo su -switch to root user
+sudo -s - switch to root user(it will ask for sudo password)
+
+Top - Top command provides dynamic realtime view of your system.
+Kill -kill is used to kill a processes
+kill -9 PID - kill that particular process and -9 flag is used to kill it forcefully.
+kill -l - it will list all flags which can be used to kll processes.
+
+chmod - change permissions for a file.
+drwx(owner/user)rwx(group)rwx(other)
+r= read - 4
+w= write - 2
+x= execute -1
+
+chown - change owner of file or directory
+
+which bash - this is used to find the location of any commad or file
+
+whatis ls - this is used to return the short description of command or any applciation.
+
+useradd sabair - To create a user sabair
+useradd sabair -m -s /bin/bash (-m is used to create a home directory for a user and -s is shell)
+passwd sabair - To assign a password to user sabair
+userdel sabair - Delete user sabair. (This will delete the user sabair and not the home directory)
+userdel -r sabair - Delete the user sabair and its home directory.
+
+groups - it is used to check the list of groups assocaited with particular user.
+groupadd java - create a group named java
+To view list of groups - cat /etc/group
+groupdel java - To delete a group
+gpasswd -a user_name groupd_name (-a to add user to group, -d to remove user from group)
+
+
+df - Is used to display the amount of free space in your filesystem.
+df -h - It will make more human readable.
+du - Is used to display the amounnt of memory taken by files.
+du -h - It ill make  more human readable.
+free - find the free memory of the system.
+free -m - Human readable to megabytes.
+
+wc filename.txt - Is used to see the word count of any file(lines,words,characters)
+
+
+
+bash script:
+===========
+.sh will be the extension for scripts.
+Its not mandatory that we should keep .sh as extension,without .sh as well we can execute our script and it will work fine.
+Sample script
+#!/bin/bash    (#! = shebang) (/bin/bash location of our bash)
+ls
+echo "hello world"
+
+#!/bin/bash
+STRING="hello world"
+echo $STRING

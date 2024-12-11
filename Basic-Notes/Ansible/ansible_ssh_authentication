@@ -1,0 +1,22 @@
+ssh-authentication-less for ansible:
+
+
+1) Login to ansible master
+2) create a ssh keygen
+ssh-keygen -t rsa
+3)copy public key
+cat id_rsa.pub
+4) Login to ansible worker node
+5) create .ssh directory
+mkdir .ssh
+6) Chnage the ownership to user which is used to login
+chmod ec2-user:ec2-user .ssh
+7) Change permission to 600
+chmod 600 .ssh
+8) create a authorized_keys files
+touch authorized_keys
+9) edit the file and paste the ansible master public key
+vi authorized_keys
+10) change permissions
+chmod 600 authorized_keys
+11) DOne !!

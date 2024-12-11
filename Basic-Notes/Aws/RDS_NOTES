@@ -1,0 +1,197 @@
+RDS(Relational Database Service):
+===============================
+It is an web service that makes it easy to setup and maintain databases in aws cloud. 
+It provides cost-efficient, resizable capacity for databases.
+The main advantage of rds is it can be resized. 
+You can resize cpu, memory, storage whenever you want.
+You can use regular databases in RDS like mysql, mariaDB, postgre SQL, Microsoft SQL, oracle and Amazon aurora DB.
+You can setup your databases in different AZ. It will replicate the entire DB. 
+In case, if your db in an AZ is failed.
+Managed Database instance for one or more databases.
+After creating an RDS DB, it gives an endpoint. With this endpoint you can connect to your DB from EC2 instance.
+
+Types of databases:
+==================
+Relational and Non-Relational database
+
+Relational database stored information in tables.
+Often, these tables have shared information between them, causing a relationship to form between tables. 
+This is where a relational database gets its name from.
+Example: MySql, Oracle, MariaDB, Postgres and MS-SQL
+
+Non-Relational Database,sometimes called NoSQL (Not Only SQL), is any kind of database that doesn’t use the 
+tables, fields, and columns structured data concept from relational databases. 
+Example: MongoDB, BigTable, Redis, RavenDb, Cassandra, and CouchDb.
+
+Database on ec2:
+===============
+We can configure our database on ec2.
+
+               Webserver
+			       |
+                   |
+               Application 
+                   |
+                   |
+                Database				   
+
+If you want to host a application then we need webserver and database also to store data.
+The above example is called as 3tier architecture.
+We need to run all the 3 components.
+We can install all the 3 components in the same machine but still it is not recomended.
+
+Why should you run db on EC2?
+Access to the DB instance OS
+Vendor Demands
+DB or DB version that aws doesn’tprovide.
+
+Why shouldn't you run DB on EC2?
+Admin overhead
+Backup and DR (Disaster Recovery)
+Ec2 is running in single AZ
+Will miss out features from aws DB products.
+Performance will be slower than aws options.
+
+Install Db on ec2 steps:
+
+Begin Configuration :
+===================
+sudo su -
+yum -y install mariadb-server wget
+systemctl enable mariadb
+systemctl start mariadb
+yum -y update
+
+Set Environmental Variables
+===========================
+DBName=ec2db
+DBPassword=admin123456
+DBRootPassword=admin123456
+DBUser=ec2dbuser
+
+Database Setup on EC2 Instance:
+===============================
+echo "CREATE DATABASE ${DBName};" >> /tmp/db.setup
+echo "CREATE USER '${DBUser}' IDENTIFIED BY '${DBPassword}';" >> /tmp/db.setup
+echo "GRANT ALL PRIVILEGES ON *.* TO '${DBUser}'@'%';" >> /tmp/db.setup
+echo "FLUSH PRIVILEGES;" >> /tmp/db.setup
+mysqladmin -u root password "${DBRootPassword}"
+mysql -u root --password="${DBRootPassword}" < /tmp/db.setup
+rm /tmp/db.setup
+
+Adding some dummy data to the Database inside EC2 Instance:
+==========================================================
+mysql -u root --password="${DBRootPassword}"
+USE ec2db;
+CREATE TABLE table1 (id INT, name VARCHAR(45));
+INSERT INTO table1 VALUES(1, 'Virat'), (2, 'Sachin'), (3, 'Dhoni'), (4, 'ABD');
+SELECT * FROM table1;
+
+RDS Database Instance:
+=====================
+Database connects with a CNAME.RDS uses standard database engines.
+DB can be optimized with db.m5 general,db.r5 memory,db.t3 burst.
+when we provision an instance,we also provision one ebs storage that
+is dedicated to instance.
+Ebs storage will also be in the same AZ.
+If ebs storage fails for some reason then RDS will also fail to operate.
+
+Migrating DB from EC2 to RDS:
+============================
+1) Get the dump of your existing DB on EC2
+mysqldump -u root -p database_name > file_name.sql
+
+2) Migrate the DB dump that you have taken in step 1 to RDS
+mysql -h <replace-rds-end-point-here> -P 3306 -u <user_name> -p database_name < ec2db.sql
+ 
+3) Connect to your RDS DB instance
+mysql -h <replace-rds-end-point-here> -P 3306 -u rdsuser -p
+
+4) Switch to the database and verify the details.
+USE rdsdb
+SELECT * FROM table1;
+
+RDS Multi Az (High-Availability):
+=================================
+Multi Az option can be enabled on rds instance and it will create a replica/standby db of original db
+in anaother availability zone.
+The ebs volume attached for standby db will be in the created in the same region.
+RDS access only via database CNAME. so we cannot access standy db for any reason via RDS.
+Standby replica cannot be used as extra capacity.
+synchronus replication means if some is written in the db then the same will be replciated in standby db.
+
+This is helpful if for some reasons primary is not working as expected then aws will detect
+and it will take 1-2 mins to create a new instance.(Fail Over)
+
+Fail over means it will have some downtime.
+Fault tolerance means there will be no downtime.
+
+Points to remember:
+==================
+1) Multi AZ feature is not free and we need to pay twice the price.
+2) Standy replcia cannot be accessed directly unless a failure occurs.
+3) Failover is highly available, not fault tolerant.
+4) Backups taken from standby (Removes performance impacts)
+5) Multi AZ will be created in same region.
+
+RDS Backup and Restores:
+========================
+Key Terminologies in Backup and Restores.
+1) RPO
+2) RTO
+
+RPO - Recovery Point Objective
+==============================
+1) Time between the last backup and whenver the  failure occured.
+Ex: We have taken backup at 6 a.m and failure happened at 7 a.m
+then RPO is for 1 hour and we will loose 1 hr of data.
+2) Amaount of maximum data loss.
+3) Business provides an RPO value.
+4) influence technical solution and case.
+
+RTO- Recovery Time Objective
+============================
+1) Time between the DR event and full recovery.
+Ex: Disaster happened at 6 a.m and you took 30 mins to restore back the DB.
+Then 30 mins we can say as RTO.
+2) Influenced by process,staff,tech and documentation.
+
+Backups:
+========
+1) First snap is full size of consumed data.
+After first snapshot it will only capture the latest data written to db.
+2) Manual snapshots will remain in your aws account even after the life
+of snapshot,these needs to be deleted manually.
+3) Automatic Snapshots.
+4)Automatic cleanups can be anywhere from 0 to 35 days.
+5) When you delete the db,they can be retained but they will 
+expire based on thier retention period.
+
+Points to Remember:
+==================
+1) When performing a restore,RDs creates new endpoint address.
+2) Restores aren't fast, think about RTO.
+
+RDS Read-Replicas:
+=================
+Read Replcias is a copy of the primary instance.
+Use case: Let’s assume we have a primary RDS instance that serves both read and write traffic. 
+Due to the size of the instance and the amount of read-intensive traffic being directed to the 
+database for queries. the performance of the instance is taking a hit.
+To help resolve this, you can create a read replica. A snapshot will be taken of your database, 
+and if you are using Multi-AZ, then this snapshot will be taken of your secondary database instance
+ to ensure that there are no performance impacts during the process. Once the snapshot is completed, 
+ a read replica instance is created from this data. 
+ 
+1) Asynchronous replication.
+2) It is written fully to the primary instance.
+once its stored-on disk,it is then push to the replcia db.
+This means there could be small log.
+3) These can be created in the same region or different region,it is a cross region replication.
+
+why we need Read Replicas:
+=========================
+1) We can create 5 read-repicas per DB instance.
+2) Each of these provides an additional instance of Read performance.
+3) This allows you to scale out read operations for an instance.
+4) Can provide global performance improvments.

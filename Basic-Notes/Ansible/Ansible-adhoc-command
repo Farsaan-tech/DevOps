@@ -1,0 +1,51 @@
+# To check the connetivity between slaves
+ansible all -m ping
+ansible all -m ping -i ansible_hosts
+
+# How to gather facts of slave machine
+ansible all -m setup
+
+# Tips: -i is used if we are using more than one invertory file 
+
+
+# What if you do not have SSH key-based? How to pass username and password?
+ansible all -m ping --user=ansadm --ask-pass
+
+# TO checkthe uptime of a slave machine
+ansible all -a uptime
+
+# Tips: -m is the module and -a should contain the command it should run which goes as an argument to command and shell.
+
+# check the free memory or memory usage of  host
+ansible all -a "free -m" 
+
+# Execute a command as root user (sudo) on host
+ansible all -m shell -a "cat /etc/passwd|grep -i ansadm" -s --ask-sudo-pass
+
+# Execute a command using become module
+ansible all -m shell -a "cat /etc/passwd|grep -i ansadm" -b -K
+
+# Tips: -b is the option for become and by default it will become root user
+        –K is to tell ansible to ask for SUDO password
+
+#Execute a command as a different user  (sudo su)
+ansible all -m file -a "path=/home/ansadm/test state=directory mode=0755" -b --become-user=ansadm
+
+# Create a Linux user group
+ansible all -s -m group -a "name=test state=present" -b -K
+
+# Create a file with 755 permission
+ansible all -m file -a "path=/home/asnadm/testfile state=touch mode=0755"
+
+# Change ownership of a file
+ansible all -m file -a "path=/home/ansadm group=weblogic owner=weblogic" -b
+
+# Install a package using yum command
+ansible all -m yum -a "name=httpd state=installed"
+
+# Start or stop the service
+# To Start
+ansible all -m service -a "name=httpd state=started enabled=yes"
+
+# To Stop
+ansible all -m service -a "name=httpd state=stop enabled=yes"

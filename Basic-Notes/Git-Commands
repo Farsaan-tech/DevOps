@@ -1,0 +1,59 @@
+1) To Set global user_name
+Git Config --global user.name "MD_Sabair"
+2) To set global user_email
+Git Config --global user.email "MD_Sabair@yahoo.com"
+3) Initiliaze git
+Git init
+4) To add files to tracking area
+git add file_name
+5) To add multiple files to tracking area
+git add .
+6) To check Direcotry status
+git status
+7) To Commit files
+git commit -m "Message"
+8) To push changes to central
+git push -u origin master
+9) To add remote origin
+git remote add origin <git_repo_url>
+10) To view the remote origin
+git remote -v
+11) To make a copy from central to local
+git clone <git_repo_url>
+12) To pull the latest changes to local
+git pull <git_repo_url>
+13) list of branches
+git branch --list
+14) To create branch
+git branch <branch_name>
+15) To checkout branch
+git checkout sabear
+16) To push code to specific branch
+git push -u origin <branch_name>
+17) To view git logs
+git log
+18) To view last 3 logs
+git log -3
+19) To revert any previous commit
+git revert <commit_id>
+20) To merge two branches
+git merge <branch_name>
+21) Clone one particular branch
+git clone -b <branch_name> <github_repo_url>
+22) Git stash is used to push files to stash memory
+git stash
+23) To view the stash list
+git stash list
+24) To get files out of stash memory
+git stash pop
+25) To get a specific file out of stash memory
+git stash pop stash{id}
+26) How to change the previous commit message
+git commit --amend
+27) To merger multiple commits into a sinlge commit.
+git rebase -i HEAD~n
+28) Merge Conflict -->GIt will raise merge conflict if we have identical files in both the branches.
+29) Ignore some files from tracking
+.gitignore
+30) To download the configuration changes.
+git fetch origin
