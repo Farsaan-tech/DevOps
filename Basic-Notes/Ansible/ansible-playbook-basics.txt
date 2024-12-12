@@ -1,0 +1,154 @@
+1) WATCH ANSIBLE-02 VIDEO AND WRITE DOWN NOTES.2) INSTALL HTTPD USING ANSIBLE PLAYBOOK, USE HANDLERS,NOTIFIERS.
+CREATE TWO SERVERS WITH LINUX-2 IMAGE WHICH WILL ACT AS WORKERS
+*On ansible controller add inventory with name linux in hosts file*
+ON ANSIBLE CONTROLLER CREATE A FILE httpd.yml AND WRITE THE PLAYBOOK
+# vi apache.yml
+---
+- hosts: all
+  become: yes
+  tasks:
+    - name: Install httpd
+      yum:
+        name: httpd
+        state: present
+      notify: Restart httpd
+
+    - name: Ensure httpd is started
+      service:
+        name: httpd
+        state: started
+
+  handlers:
+    - name: Restart httpd
+      service:
+        name: httpd
+        state: restarted
+
+
+# ansible-playbook httpd.yml –syntax-check         (check the syntax error on cli)
+# ansible linux -m ping
+<user permission issue , generate ssh-keygen and add to workers and restart sshd>
+<edit the ansible.cfg and add remote-user as ec2-user>
+# ansible-playbook httpd.yml
+
+3) WRITE A ANSIBLE PLAYBOOK TO INSTALL APACHE TOMCAT.
+CREATE A PLAYBOOK NAME tomcat.yml
+---
+- hosts: all
+  become: yes
+  tasks:
+    - name: java install
+      yum:
+        name: java-17*
+        state: present
+    - name: Tomcat download
+      get_url:
+       url: https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.98/bin/apache-tomcat-9.0.98.tar.gz
+       dest: /opt/apache-tomcat-9.0.98.tar.gz
+    - name: Extracting tomcat
+      unarchive:
+        src: /opt/apache-tomcat-9.0.98.tar.gz
+        dest: /opt
+        remote_src: yes
+    - name: Changing tomcat directory permissions
+      file:
+        path: /opt/apache-tomcat-9.0.98
+        owner: ec2-user
+        group: ec2-user
+        recurse: yes
+    - name: Starting tomcat
+      command: /opt/apache-tomcat-9.0.98/bin/startup.sh
+
+
+# ansible-playbook httpd.yml –syntax-check         (check the syntax error on cli)
+# ansible-playbook tomcat.yml 
+
+4) WRITE A ANSIBLE PLAYBOOK TO PROVISION ONE EC2 ON AWS.
+#CREATE A PLAYBOOK WITH NAME ec2.yml AND ADD THE FOLLOWING CONTENT
+---
+- name: Provision an EC2 instance
+  hosts: localhost
+  gather_facts: false
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    aws_access_key: "your_access_key_id"
+    aws_secret_key: "your_secret_access_key"
+  tasks:
+    - name: Launch EC2 instance
+      amazon.aws.ec2_instance:
+        name: playbook-server
+        key_name: ohio
+        instance_type: t2.micro
+        image_id: ami-088d38b423bff245f
+        region: us-east-2
+        security_groups: default
+        wait: yes
+        count: 1
+        aws_access_key: "{{ aws_access_key }}"
+        aws_secret_key: "{{ aws_secret_key }}"
+
+
+5) WRITE A ANSIBLE PLAYBOOK TO COPY ONE FILE FROM NODE-1 TO NODE-2.
+CREATE A INVENTORY FILE node_inventory WITH FOLLOWING CONTENT 
+[node1]
+node-1 ansible_host=NODE_1_IP
+
+[node2]
+node-2 ansible_host=NODE_2_IP
+
+CREATE A PLAYBOOK copy.yml WITH FOLLOWING CONTENT
+---
+- name: Create a file on node-1 and copy it to node-2
+  hosts: node1
+  gather_facts: false
+  tasks:
+    - name: Create a file on node-1
+      file:
+        path: /home/ec2-user/test.txt
+        state: touch
+
+- hosts: node1
+  gather_facts: false
+  tasks:
+    - name: Fetch file from node-1
+      fetch:
+        src: /home/ec2-user/test.txt
+        dest: /tmp/test.txt
+        flat: yes
+
+- hosts: node2
+  gather_facts: false
+  tasks:
+    - name: Copy file to node-2
+      copy:
+        src: /tmp/test.txt
+        dest: /home/ec2-user/test.txt
+
+  NOW RUN THE COMMAND FOR PLAYBOOK
+#  ansible-playbook -i /home/ubuntu/node_inventory copy.yml
+
+
+6) WRITE A ANSIBLE PLAYBOOK TO CREATE DIFFERENT FILES WITH DIFFERENT NAMES USING SINGLE PLAYBOOK.
+CREATE A PLAYBOOK create_files.yml WITH FOLLOWING CONTENT
+---
+- name: Create multiple files
+  hosts: localhost
+  tasks:
+    - name: Ensure the directory exists
+      file:
+        path: /home/ec2-user
+        state: directory
+
+    - name: Create files with different names
+      file:
+        path: "/home/ec2-user/{{ item }}"
+        state: touch
+      loop:
+        - file1.txt
+        - file2.txt
+        - file3.txt
+        - file4.txt
+        - file5.txt
+
+RUN THE PLAYBOOK # ansible-playbook create_files.yml
+
