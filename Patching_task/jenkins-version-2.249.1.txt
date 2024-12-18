@@ -1,0 +1,37 @@
+jenkins-version-2.249.1
+
+
+---
+- name: Install a specific version of Jenkins
+  hosts: jenkins
+  become: yes
+
+  tasks:
+    - name: Add Jenkins repository key
+      apt_key:
+        url: https://pkg.jenkins.io/debian/jenkins.io-2023.key
+        state: present
+
+    - name: Add Jenkins repository
+      apt_repository:
+        repo: 'deb https://pkg.jenkins.io/debian-stable binary/'
+        state: present
+
+    - name: Install OpenJDK 11
+      apt:
+        name: openjdk-11-jdk
+        state: present
+
+    - name: Install specific version of Jenkins
+      apt:
+        name: jenkins=2.249.1
+        state: present
+
+    - name: Reload systemd manager configuration
+      command: systemctl daemon-reload
+
+    - name: Start and enable Jenkins service
+      service:
+        name: jenkins
+        state: started
+        enabled: yes
