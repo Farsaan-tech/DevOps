@@ -1,0 +1,83 @@
+A TEMPLATE TO CREATE 2 SERVERS JENKINS AND ANSIBLE WITH PORTS ALLOWED
+
+provider "aws" {
+  region = "us-east-2"
+}
+
+resource "aws_key_pair" "patching" {
+  key_name   = "patching"
+  public_key = file("~/.ssh/patching_key.pub")
+}
+
+resource "aws_security_group" "allow_ssh_http" {
+  name        = "allow_ssh_http"
+  description = "Allow SSH and HTTP traffic"
+  vpc_id      = "vpc-xxxxxxxx"  # Replace with your VPC ID
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_instance" "jenkins" {
+  ami                    = "ami-088d38b423bff245f"
+  instance_type          = "t2.micro"
+  key_name               = aws_key_pair.patching.key_name
+  security_groups        = [aws_security_group.allow_ssh_http.name]
+  associate_public_ip_address = true
+  tags = {
+    Name = "jenkins_server"
+  }
+
+  user_data = <<-EOF
+              #!/bin/bash
+              wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | sudo apt-key add -
+              sudo sh -c 'echo deb http://pkg.jenkins.io/debian-stable binary/ > /etc/apt/sources.list.d/jenkins.list'
+              sudo apt-get update
+              sudo apt-get install -y jenkins=2.235.1
+              sudo systemctl start jenkins
+              sudo systemctl enable jenkins
+              EOF
+}
+
+resource "aws_instance" "ansible" {
+  ami                    = "ami-00eb69d236edcfaf8"
+  instance_type          = "t2.micro"
+  key_name               = aws_key_pair.patching.key_name
+  security_groups        = [aws_security_group.allow_ssh_http.name]
+  associate_public_ip_address = true
+  tags = {
+    Name = "ansible_server"
+  }
+
+  user_data = <<-EOF
+              #!/bin/bash
+              sudo apt-get update
+              sudo apt-get install -y ansible
+              EOF
+}
+
+output "ansible_server_public_ip" {
+  value = aws_instance.ansible.public_ip
+}
+
+output "jenkins_server_public_ip" {
+  value = aws_instance.jenkins.public_ip
+}
