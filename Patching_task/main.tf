@@ -16,36 +16,6 @@ resource "aws_instance" "jenkins" {
     Name = "jenkins_server"
   }
 
-user_data = <<-EOF
-              #!/bin/bash
-              exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
-              set -e
-
-              # Update package list
-              sudo apt-get update -y
-
-              # Install OpenJDK 17
-              sudo apt-get install -y openjdk-17-jdk
-
-              # Add Jenkins repository key
-              sudo wget -O /usr/share/keyrings/jenkins-keyring.asc https://pkg.jenkins.io/debian/jenkins.io-2023.key
-
-              # Add Jenkins repository
-              echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian binary/" | sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null
-
-              # Update package list again
-              sudo apt-get update -y
-
-              # Install fontconfig, Jenkins
-              sudo apt-get install -y fontconfig jenkins
-
-              # Start and enable Jenkins service
-              sudo systemctl start jenkins
-              sudo systemctl enable jenkins
-
-EOF
-
-
 
 }
 
