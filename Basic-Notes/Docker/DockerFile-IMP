@@ -1,0 +1,48 @@
+What is DockerFile?
+Dockerfile is a text file which contains the list of instructions
+that docker reads to setup an image.
+DockerFile is used to build docker images.
+
+Set of DockerFile Instructions:
+===============================
+FROM: where to download the base image.-
+MAINTAINER: Non executable instruction used to indicate the author of DockerFile.
+COPY: Copy file from docker host to image.
+ADD: It copy the file from source to destination and also extracts the file.
+CMD: It specifies the intended command for the image.
+ENTRYPOINT: when the container is up,entry point is the starting of execution.
+ENV: This instruction can be used to set the env variables in the container.
+EXPOSE: expose a specified port.
+RUN: This instruction is used to execute a command on top of an existing layer.
+USER: This is used to set the username.
+VOLUME: Volume instruction is used to enable access to a location.
+WORKDIR: To change the directory.
+ONBUILD: It will add a trigger instruction.
+
+
+Difference between ADD and COPY?
+COPY module is just to copy a file from local to the image.
+ADD is also used to copy file from local to image and we can download any file from internet using add, we can extract the compose file using ADD.
+
+Differnce between RUN and CMD?
+RUN let's you execute commands inside docker image.These commands get executed once at build time and
+get written into your docker image as a new layer.
+EX:- RUN mkdir -p /path-to-folder
+CMD is  a docker run time operation.Meaning its not something that gets executed at build time.
+It happens when you run an image.A running image is called container.
+Only one CMD can be used in a DockerFile,if we use multiple then only last CMD will be used.
+
+Difference between CMD and ENTRYPOINT?
+Both are similar but not same and act as executable commands when running the container.
+CMD can be override,if we pass other argument.
+ENTRYPOINT cannot be overriden.
+we cna use multiple CMD but only last one will be considered at runtime.
+EX:_
+FROM ubuntu
+RUN apt-get update
+ENTRYPOINT ["echo","hello"]
+CMD ["WORLD"]
+
+When running the container it will show "Hello,WORLD"
+Suppose we are passign argument like docker run -it -d <image_name> Sabair
+Output: "hello Sabair" 

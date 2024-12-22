@@ -1,0 +1,35 @@
+Multi Stage DockerFile:
+======================
+Multi stage dockerfile is used to reduce the size of the image, Better security and also to 
+spin out the containers much faster.
+
+Example for single stage dockerfile.
+Clone the below repo and add the DockerFile.
+https://github.com/betawins/multi-stage-example.git
+
+Dockerfile:
+==========
+FROM openjdk:8-jdk-alpine
+RUN mkdir -p /app/source
+COPY . /app/source
+WORKDIR /app/source
+RUN ./mvnw clean package
+
+EXPOSE 8080
+ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom", "-jar", "/app/source/target/multi-stage-example-0.0.1-SNAPSHOT.jar"]
+
+Multi stage-Dockerfile:
+======================
+#Build Image
+FROM openjdk:8-jdk-alpine as builder
+RUN mkdir -p /app/source
+COPY . /app/source
+WORKDIR /app/source
+RUN ./mvnw clean package
+
+#Run image
+FROM openjdk:8-jdk-alpine
+WORKDIR /app
+COPY --from=builder /app/source/target/*.jar /app/app.jar
+EXPOSE 8080
+ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom", "-jar", "/app/app.jar"]

@@ -1,0 +1,111 @@
+-> What is Docker-Compose:
+
+It is a tool for defining and running multi container docker applciations.
+It uses YAML files to configure applicaiton services.
+Default file will be docker-compose.yml
+Can start/stop all services with a single command.
+Can scale up selected services when required.
+
+-> How to install docker-compose:
+
+1) Install Docker over it.
+
+2) Now to install docker-compose, run
+
+sudo curl -L https://github.com/docker/compose/releases/download/1.21.0/docker-compose-`uname -s`-`uname -m` | sudo tee /usr/local/bin/docker-compose > /dev/null
+
+3) For permission
+
+sudo chmod +x /usr/local/bin/docker-compose
+
+4) Create a symbolic link
+
+ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+
+5) Check docker-compose version:
+docker-compose --version
+
+-> Basic docker-compose.yml:
+
+Sample-two-tier:docker-compose file
+========================
+
+version:  '3'   -> Depends upon docker-compose version
+services:       -> All the services should be in this section
+   db:          -> Name of service (name can be anything)
+     image: mysql:5.7  -> Images used to run container
+     volumes:          -> volumes to store contaienr data
+       - db_data:/var/lib/mysql    -> mount point
+     restart: always
+     environment:    -> Environmental variables
+       - MYSQL_ROOT_PASSWORD=somewordpress
+       - MYSQL_DATABASE=wordpress
+       - MYSQL_USER=wordpress
+       - MYSQL_PASSWORD=wordpress
+   wordpress:
+     depends_on:   -> It will wait for db service to get started.
+       -   db
+     image: wordpress:latest
+     ports:        -> port to expose to outerworld
+       - "8000:80"
+     restart: always
+     environment:
+       - WORDPRESS_DB_HOST=db:3306
+       - WORDPRESS_DB_USER=wordpress
+       - WORDPRESS_DB_PASSWORD=wordpress
+       - WORDPRESS_DB_NAME=wordpress
+
+volumes:
+    db_data: { }
+
+
+-> Docker-compose commands:
+
+1) docker-compose up -> To run the docker-compose file
+2) docker-compose up -d -> To run the docker-compose file in detach mode
+3) docker-compose down -> To stop & delete the docker-compose services
+4) docker-compose restart -> To restart docker-compose
+5) docker-compose stop -> To stop docker-compose.
+6) docker-compose start -> To start docker-compose
+7) docker-compose ps -> list of containers
+8) docker-compose pause -> pause the docker-compose
+9) docker-compose unpause -> unpause the docker-compose
+10)docker-compose top -> to view top performances
+11)docker-compose up -d --scale db=5  ->To run 5 db container (db is nothing but service name)
+Note: we can't scale the services using port number because of port conflicts.
+12)docker-compose -f docker-compose2.yml up -d -> To use other docker-compose file
+docker-compose create -> It will create container with only default network
+13)docker-compose iamges -> List of imags used in docker compose
+14)docker-compose kill -> kill the containers
+15)docker-compose logs -> To check the logs of containers
+16)docker-compose port webapp 80 -> To check if port 80 is bind with webapp service or not
+17)docker-compose exec webapp ls -> Execute the command in webapp container
+
+-> Run docker file inside docker-compose:
+
+version: '3'
+services:
+   webapp:
+     build: .  -> It will look for dockerfile in current directory
+     ports:
+       -5000:5000
+     image: sabair/devops -> name given to image
+
+-> how to make docker-compose more generic:
+1) Create a .env.txt file for example
+Name= Sabair
+ADD= Tealangana
+
+2) Docker-compose.yml
+
+version: '3'
+services:
+   webapp:
+     build: .  -> It will look for dockerfile in current directory
+     ports:
+       -5000:5000
+     evn_file:
+        -env.text   -> variable file
+     image: sabair/devops -> name given to image
+
+Note: we can put all variables in .env.txt file and pass this is docker-compose
