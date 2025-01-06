@@ -1,0 +1,2218 @@
+Kubernetes:
+===========
+Minikube:
+========
+Minikube is a single cluster with all k8s component.
+minikube is used for learning and development purposes.
+
+Install minikube on windows:
+===========================
+1) Install Docker on windows.
+https://docs.docker.com/desktop/install/windows-install/
+2) Install Oracle box on windows
+https://adamtheautomator.com/install-virtualbox-on-windows-10/
+3) Check system info in CMD
+systeminfo
+4) Install Minikube using powershell
+https://minikube.sigs.k8s.io/docs/start/
+5) Set the minikube path to environmental varaible
+6) Restart powershell and start minikube
+minikube start
+
+
+To check minikube ip use : minikube ip
+To ssh to minikube: minikube ssh
+To connect or check the pods : kubectl get pods
+To see minikube on dashboard: minikube dashboard
+
+Setup 3 nodes k8s cluster,1 master and 2 node machines:
+======================================================
+1) launch 3 instances of type t2.medium and linux2 AMI.
+2) Disable swap memory from instances.(Because k8s wants the cpu to utilized 100%)
+free - h to check the swap memeory allocated
+swapoff -a to off the swap memory
+To not enable this after restart then comment this in fstab file.
+3) Install docker based on Operating system in 3 instances.
+https://docs.docker.com/engine/install/
+4) To setup k8s cluster we have different tools like kops and kubeadm.
+https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/
+5) Now we need to setup networking and configure master and worker nodes.
+https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/
+6) TO configure master we need to initialize with CIDR
+kubeadm init --pod-network-cidr=10.244.0.0/16
+7) To start using your cluster, you need to run the following as a regular user:
+  mkdir -p $HOME/.kube
+  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+  sudo chown $(id -u):$(id -g) $HOME/.kube/config
+8) If we execute kubectl get nodes we can see the status as notready because we haven't installed flannel
+9) Install Flannel and check the status of nodes  
+kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
+10) Now copy the token and execute on worker machines.
+
+
+What is kubernetes:
+==================
+Kubernetes is also called as k8s.
+k8s is an open source popular orchestration tool developed and used by google in prod env.
+We have different orchestration technologies like dockerswarm,kubernets and 
+mesos.
+
+Advantages of k8s:
+==================
+With the help of orchestration our application is highly available, as it is deployed on multiple instances.
+we can scale up the cluster if demand increase and also scale up nodes if we are out of resources.
+
+Basic k8s components:
+====================
+Pod: Is the smallest unit of k8s,a pod can contain one container,multiple
+container,one container and one volume.
+Ip will be assigned to POD.
+
+ReplicaSet: Ensures the number of pods running on node machines.
+If suppose any one pod is not healthy then RS will monitor and create new POD.
+
+Deployments:Deployments are used to deploy,upgrade,undo the changes,pausing and again resuming the changes.
+Deployments use rolling update means the new version will be slowing updated with the older version
+and the users will be able to access our application without downtime.
+
+Hierarchy for deployment:
+pods --> replicasets --> Deployment
+
+Namespaces: These are used to group your applications.
+They can be helpful when different teams or projects share a Kubernetes cluster.
+
+services: Service will help us to redirect the traffic to PODS.
+
+Kubernetes Architecture:
+=======================
+We have two Kind of machines in k8s.
+1) Master
+2) Worker node
+
+Again we have different components on master and worker nodes.
+
+Master Components:
+==================
+1) Kube api server
+2) etcd
+3) Controller
+4) Scheduler
+
+worker node components:
+=======================
+1) Docker container runtime
+2) Kubelet agent
+3) Kubeproxy
+
+Note: kubectl is a command line tool to execute k8s commands.
+
+Api server: Acts as frontend of k8s,Authenticate user,authorization and api server is the only gateway to communciate with our k8s cluster.
+Etcd: Cluster brain,which stores the information related to cluster,node in the form of key value pair.
+Scheduler: Responsible to schedule pods on the node machine.
+Controller manager: controller is the brain behind orchestration,if nodes,container,endpoint goes down then controller will work behind to bring them up.
+Container runtime: any container service to start,stop container (Docker).
+kubelet: Kubelet run on all the machines,kubelet make sure that the containers are running as expected on node machines.
+KubeProxy: It maintains network rules on your nodes and enables network communication to your Pods.
+
+How to Create a pod:
+===================
+pods: pod is the smallest unit in k8s.
+pod will have atleast one container.
+
+Multi container pods:
+we can have multiple container in one pod.
+one container with application and another container will be helper container.
+Helper container: this will be deployed along with our application,helper container will help
+our application with any processing/functionality.
+
+Kubectl run firstpod --generator=run-pod/v1 --image=nginx
+
+Firstpod = name of pod
+generator = to specify to create pod,if not specified then it will create deployment
+image = docker image
+Note: Generators might be deprecated
+
+commands for pods:
+==================
+kubectl run nginx --image=nginx --> to run a pod with name nginx and image nginx
+kubectl get pods --> to display the list of pods
+kubectl describe pod nginx --> Detail information of the pod created.
+kubectl get pods -o wide --> additional information of pod like node,ip etc 
+kubectl explain pods -->Detailed description of pods
+kubectl get pods -w --> Continously watch the status of POD
+kubectl delete pod pod_name --> To delete the pod
+kubectl delete resourcetype resourcename
+kubectl run nginx --dry-run=client --image=nginx --> To check how the command will execute.
+kubectl delete pods --all --> Delete all pods
+Labels:
+Labels are key-value pairs which are attached to pods, 
+replication controller and services. They are used as identifying 
+attributes for objects such as pods and replication controller. 
+They can be added to an object at creation time and can be added or modified at the run time.
+
+kubectl describe pod <pod_name> --> to check the label attached
+kubectl label pod firstpod env=test --> To attach label env=test
+kubectl label --overwrite pod firstpod env=prod --> To update the label env
+kubectl label pod firtpod env- --> To delete the label env
+Kubectl label pods -all status=xyz --> To update the label to all pods
+kubectl get pods --show-labels --> to check labels
+
+First YAML file:
+===============
+k8s definition filed contains four top level fileds.
+
+apiversion
+kind
+metadata
+spec
+====================
+kind       version
+=====================
+POD          v1
+service      v1
+ReplicaSet   apps/v1
+Deployment   apps/v1
+=====================
+
+Sample YAML file:
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: firstpod
+  labels:
+    env: prod
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+	
+TO create pod using yaml file:
+kubectl create -f <file_name>.yml --dry-run --> to check the output
+kubectl create -f <file_name>.yml
+
+How will we know what fields we can use in metadata and spec?
+We can get different options using
+kubectl explain pods --recursive
+kubectl run nginx --dry-run=client --image=nginx -o yaml
+
+To update any object in k8s we can use edit
+kubectl edit pod <podname>
+
+Difference between create and apply?
+kubectl supports three types of object management.
+1) Imperative commands --> Which are not created from yaml
+2) Imperative object configuration --> Kubectl create is example for imperative.
+3) Declarative object configuration --> Kubectl apply is example for declarative.
+
+Imperative : 
+You have to manage different resources like pods, service, replica sets, etc by your own.
+Imperative object configuration will helps us to modify the objects and these changes are not stored in yaml.
+The kubectl create command creates a resource from a file or from stdin. JSON and YAML formats are accepted. 
+If the resource already exists, kubectl create will error.
+
+Declarative : 
+K8 will take care of all the resources, all you need have to specify what is your actual requirement.
+Declarative object configuration will helps to modify the yaml file.
+The kubectl apply command applies a configuration to a resource by file name or stdin. The resource name must be specified.
+This resource will be created if it doesn’t exist yet. If the resource already exists, this command will not error. JSON and YAML formats are accepted.
+
+Set Env Variables inside container Pods:
+=======================================
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: firstpod
+  labels:
+    env: prod
+    name: sabair
+spec: 
+  containers: 
+  - name: nginx 
+    image: nginx
+    env:
+      - name: myname
+        value: sabair
+      - name: City
+        value: Hyderabad
+		
+How to check the environmental variables?
+login to the node where the container is running and execute the below command
+docker exec -it <container_id> env	
+
+How to check the variables using kubectl?
+kubectl exec <Pod_name> -- env --> If one container is runnind inside pod
+kubectl exec <pod_name> -c <container_name> -- env --> To run command in specific container
+kubectl exec <pod_name> -it bash --> To login inside the pod if one container is running
+kubectl exec <pod_name> -c <container_name> -it bash --> Login to specific container
+
+How to set command in pods containers?
+We can use argumnets in yaml to pass commands in containers.
+
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: firstpod
+  labels:
+    env: prod
+    name: sabair
+spec: 
+  containers: 
+  - name: nginx 
+    image: nginx
+    env:
+      - name: myname
+        value: sabair
+      - name: City
+        value: Hyderabad
+    args: ["sleep", "50"]
+
+How to create multiple container in a pod?
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: firstpod
+  labels:
+    env: prod
+    name: sabair
+spec: 
+  containers: 
+  - name: firstcontainer 
+    image: nginx
+    env:
+      - name: myname
+        value: sabair
+      - name: City
+        value: Hyderabad
+    args: ["sleep", "3600"]
+  - name: secondcontainer 
+    image: nginx
+
+Note: Both these containers will be sharing the same network and can communicate between themselves.
+How to verify?
+1) Use the exec command and login to both the containers.
+kubectl exec firstpod -it -c firstcontainer bash
+2) Check the open ports by using netstat -nltp	--> We can see port 80 is open in both cases
+3) Try to open port 8000 by using netcat -l -p 8000 
+4) verify againg using netstat -nltp command
+5) Use telnet localhost 8000 on second container and write any commands to verify
+
+What is init container in pods?
+Init containers are used if you want any container to execute before the app container starts.
+Init containers are exactly like regular containers, except:
+Init containers always run to completion.
+Each init container must complete successfully before the next one starts.
+Use case:
+1) If you have multiple containers and one container should download the code from github and the
+other container will start your application.
+2) if we have two containers one web applciation and one db,web applciation should start only after db
+then we can use init containers.
+
+How to create init container?
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: firstpod
+  labels:
+    env: prod
+    name: sabair
+spec: 
+  containers: 
+  - name: firstcontainer 
+    image: nginx
+    env:
+      - name: myname
+        value: sabair
+      - name: City
+        value: Hyderabad
+   - name: secondcontainer 
+    image: nginx
+  initContainers: 
+  - name: initcontainer 
+    image: nginx
+    env:
+      - name: myname
+        value: sabair
+      - name: City
+        value: Hyderabad
+    args: ["sleep", "30"] 
+	
+Services in k8s:
+===============
+Services are used to expose our pods to outside world.
+For example we have deployed a apache webserver and want to access from our computer/outside network
+then it is possible with services only.
+services are also a object like nodes,pods in k8s.
+Default service will be ClusterIp in k8s.
+if we dont specify type in spec then it will assume as ClusterIp only.
+
+Three types of services are available on k8s.
+1) ClusterIp
+2) Nodeport
+3) Load balancer
+
+CLusterIp:
+Cluster ip is used to communicate within the cluster.
+we may have some pods running frontent,backend and database.
+And in micro services frontent will be talking to backend and databases.
+we can create a service for backend and database and group the pods related to Microservice.
+Each service will have a ip and we call it as ClusterIp which help to communciate with other services
+
+How to create cluster ip service?
+Create one pod using yaml and then create one service by using the below command
+kubectl expose pod <Pod_name> --port=8000 --target-port=80 --name <service_name>
+kubectl get services --> To list the services available.
+
+We can test by using the below command
+curl <CLuster_ip>:8000
+
+NodePort:
+NodePort is used to access for pod outside the world,means via browser.
+Port can be assigned between (30000 - 32767)
+
+How to create NodePort?
+kubectl expose pod firstpod --type=NodePort --port=8000 --target-port=80 --name nodeportservice
+ 
+How services will work?
+Services will check the request which is sent on port and redirect that based on label.
+
+service.yml
+===========
+apiVersion: v1
+kind: Service
+metadata:
+  name: firstservice
+spec:
+  type: NodePort
+  ports:
+    - nodePort: 32000
+      port: 9000
+      targetPort: 80
+  selector:
+    type: app
+
+Target port and nodeport are optional.
+Nodeport it will assign based on port available betweent the range.
+Target port it will take same as port.
+If we have multiple cluster the same service will work as distributing load.
+Algorith to distribute load : Random
+If we have multiple nodes then the service will be mapped on all the node and it can be used on same port with nodeip.
+example: 192.168.0.1:30008
+         192.168.1.0:30008	
+
+Replication Controller:
+======================
+Replciation controller or RC will ensure that these many pods are running on the cluster.
+For any reason if the pod is down then RC will monitor that and spin up a new pod for us.
+RC will get attached to the pods based on labels and selectors.
+
+How to create a RC?
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: firstrc
+  labels:
+    appname: testapp
+
+spec:                              --> Related to RC
+  replicas: 5
+  template:
+    metadata: 
+      name: firstpod
+      labels:
+        env: prod
+    spec:                         --> Related to Pod
+      containers: 
+      - name: firstcontainer 
+        image: nginx
+        env:
+          - name: myname
+
+RC will always make sure to maintain 5 pods based on above yaml.
+Now we can create a service and attach the service based on labels and then service will help
+us to redirect the traffic to pods.
+
+Service.yml
+apiVersion: v1
+kind: Service
+metadata:
+  name: firstservice
+spec:
+  type: NodePort
+  ports:
+    - nodePort: 32000
+      port: 9000
+      targetPort: 80
+  selector:
+    env: prod
+
+How to create RC?
+kubectl create -f service.yml		  
+
+Why do we need Labels and selectors?
+If suppose we have 100 of containers running then labels and selectors will help
+RS to filter the containers and apply monitoring based on labels and selectors.
+
+Will RS can be configured to the existing running pods?
+yes we can configure RS to running containers by defining the selectors in RS.yml
+
+How to delete rc?
+kubectl delete rc <name_of_rc>
+
+How to delete on rc and the pods should be running?
+kubectl delete rc --cascade=false <name_of_rc>
+
+This will only delete rc and pods will be running,if pod is deleted then they will not restart as
+we dont have any rc configured.
+
+How to scale up/scale down using Rc?
+
+We can scale up and scale down using command or yaml
+1)kubectl scale rc --replicas=6 <rc_name> -->imeprative commands
+2) using imperative object configuration using edit
+kubect edit rc <rc_name>
+3) Declarative object configuration
+make the changes in yaml file and use the below apply command
+kubectl apply -f <file_name.yml>
+
+How to scale up/scale down automatically using rc?
+Rc will first check if any pod with label is available or not and if available
+then it will check for the owner or someone controlling the pod.
+if no one is controlling the pod then rc will be assigned to that pod.
+
+if we create new rc with same label then a new pod will be created as the existing pod has already 
+assigned with rc.
+
+We can also configure the selector in rc yaml file.
+
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: firstrc
+  labels:
+    appname: testapp
+
+spec:
+  replicas: 4
+  selector:           --> Selector (not compulsory to pass in RC) should be same of pod label
+    env: prod          ## if we dont pass selector field then it will take the labels in count by default.
+  template:
+    metadata: 
+      name: firstpod
+      labels:
+        env: prod
+    spec: 
+      containers: 
+      - name: firstcontainer 
+        image: nginx
+        env:
+          - name: myname
+
+Replica set:
+===========
+RS and RC both purpose is same but they are not same.
+RC is older technology and k8s recommend to use RS.
+RS is just the updated version of RP.
+	
+Replication controller vs Replica set Difference?
+================================================
+RC and RS functionality is almost similar.
+RC will work based on eqality based selector.
+Ex: env = prod
+RC selects all resources with key equal to env and value equal to prod.
+RS will work based on equality based selector and set based selector.
+Ex: env = (prod,test)
+RS selects all resources with key equal to env and value equal to prod or test.
+
+How to create RS?
+================
+We can get the details what needs to be added by explain command.
+kubectl explain rs --recursive|less
+In RS selector filed is mandatory and if not provided then will throw error.
+
+Let us create two pod one by label "Prod" and one by label "test"
+
+rs.yaml:
+=======
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: firstrc
+  labels:
+    appname: testapp
+
+spec:
+  replicas: 2
+  selector:
+    matchExpressions:
+      - key: env
+        operator: In      #value can be In or NotIn only
+        values: 
+          - prod
+          - test
+  template:
+    metadata: 
+      name: firstpod
+      labels:
+        env: prod
+    spec: 
+      containers: 
+      - name: firstcontainer 
+        image: nginx
+        env:
+          - name: myname
+
+If Suppose we have 3 pods now with label one as "prod","test" and one pod with two labels "prod" and "backend"
+and we want to ignore a specific pods then how can we use this rs.
+
+rs.yaml:
+=======
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: firstrc
+  labels:
+    appname: testapp
+
+spec:
+  replicas: 3
+  selector:
+    matchExpressions:
+      - key: env
+        operator: In
+        values: 
+          - prod
+          - test
+      - key: type
+        operator: NotIn   #ignore the pod with label as backend
+        values: 
+          - backend  
+  template:
+    metadata: 
+      name: firstpod
+      labels:
+        env: prod
+    spec: 
+      containers: 
+      - name: firstcontainer 
+        image: nginx
+        env:
+          - name: myname
+
+Deployments:
+===========
+Deployments are used to deploy,upgrade,undo the changes,pausing and again resuming the changes.
+Deployments use rolling update means the new version will be slowing updated with the older version
+and the users will be able to access our application without downtime.
+
+Hierarchy for deployment:
+pods --> replicasets --> Deployment
+
+Deployment strategy:
+===================
+There are two types of depoyment strategy in k8s.
+1) Recreate
+This will destroy the existing pods and create new.
+We can see downtime in recreate deployment strategy
+2) Rolling update 
+This is the default deployment strategy.
+No downtime for rolling update strategy.
+For example if we have 5 pods then 1 will be destroyed and a newver version will be 
+created and 4 will be servering the traffic.
+In this way it will destroy all the 5 and create new 5 pods slowly.
+
+we can see the difference when we use kubectl describe deployment deployment_name command
+In recreate it will scale down the RS to 0 and then Scale up to 5.
+In Rolling it will scale down to 4 and and bring one new up and then vice versa
+
+Create First Deployment:
+=======================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: firstdeployment
+  labels:
+    appname: testapp
+
+spec:
+  replicas: 3
+  selector:
+    matchExpressions:
+      - key: env
+        operator: In
+        values: 
+          - prod
+  template:
+    metadata: 
+      name: firstpod
+      labels:
+        env: prod
+    spec: 
+      containers: 
+      - name: firstcontainer 
+        image: nginx
+        env:
+          - name: myname
+
+Commands:
+kubectl create -f deploymen.yml --> Create deployment.
+kubectl get deployments --> To get the list of deployments.
+kubetl apply -f deployment.yml --> To update deployment.
+kubectl rollout status deployment/myapp-deployment.yml --> to check the status of deployments.
+kubectl rollout out deployment/myapp-deploy  --> Rollback to previous version		  
+
+Updates and Rollback:
+=====================
+Rollout and versioning:
+when we create deployment then a rollout is created and a Revision is created.
+When we again update the deployment then again a rollout will be carried and New Revision is created.
+These revisions are helpful when we want to rollback to previous version.
+
+Note: Rollout will get triggered only when there are change in the container configurations only.
+
+How to check the status of rollout?
+kubectl rollout status deployment <Deployment_name>
+
+Maxunavailable and MaxSurge in Deployment:
+==========================================
+Maxunavailable means the number of unaavailable pods at the time of update. 
+If we configure Maxunavailable as 1 then it will create one new and delete one old.
+If 5 as value then create 5 and delete 5.
+This will help us to complete the deployment faster.
+
+Max Surge: This will imply the number of pods that will be there on top of total replicas being mentioned. 
+Example if the replicas in the deployment is mentioned as 3, when rolling update will kick in this property 
+will define how many extra pods will be created at that point of time.
+
+how to configure this?
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: firstdeployment
+  labels:
+    appname: testapp
+
+spec:
+  replicas: 6
+  minReadySeconds: 30        --> It will take 30 seconds to start a new container.
+  strategy:
+    rollingUpdate:          --> Strategy used for deployment
+      maxSurge: 2            --> 2 extra pods (Replica 6 and maxsurge 2 then it will be 8 pods)
+      maxUnavailable: 1        --> 1 pod will create and get deleted
+  selector:
+    matchExpressions:
+      - key: env
+        operator: In
+        values: 
+          - prod
+  template:
+    metadata: 
+      name: firstpod
+      labels:
+        env: prod
+    spec: 
+      containers: 
+      - name: firstcontainer 
+        image: nginx
+        env:
+          - name: myname
+Note: Maxunavailable and Max surge value can be passed in percentage also.
+
+What will be the Maxunavailable,MaxSurge,MinReady Seconds and strategy if not mentioned in deployment?
+Strategy: RollingUpdate
+MinReady Seconds: 0
+Max surge and Max unavailable: 25%
+For example we have 100 pods then 25 pods will be selected.
+
+How to check the history of deployment?
+kubectl rollout history deployment <Deployment_name>
+Output:
+PS C:\Users\0075\Desktop\k8spractical> kubectl rollout history deployment firstdeployment
+deployment.apps/firstdeployment 
+REVISION  CHANGE-CAUSE
+1         <none>
+
+From above output we can see revision as 1 means firstrollout and change-cause <none> because we haven't added
+any annotations in deployment.yaml
+
+To test we can add annotations from command or we need to add in yaml
+kubectl apply -f .\deployment.yaml --record=true
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: firstdeployment
+  labels:
+    appname: testapp
+  annotations:
+    kubernetes.io/change-cause: Custom message    
+
+spec:
+  replicas: 4
+  
+  selector:
+    matchExpressions:
+      - key: env
+        operator: In
+        values: 
+          - prod
+  template:
+    metadata: 
+      name: firstpod
+      labels:
+        env: prod
+    spec: 
+      containers: 
+      - name: firstcontainer 
+        image: nginx
+        env:
+          - name: myname
+		  
+Output:
+PS C:\Users\0075\Desktop\k8spractical> kubectl rollout history deployment firstdeployment
+deployment.apps/firstdeployment 
+REVISION  CHANGE-CAUSE
+1         Custom message
+ 
+K8s Rollback:
+============
+Rollback will helps us to get back to old version of deployment.
+
+How to do the rollback?
+kubectl rollout undo deployment <deployment_name>
+This will roll back to previous version.
+
+If you want to rollback to specific version?
+kubectl rollout undo --to-revision=2 deployment <deployment_name>
+
+How to pause and resume deployment?
+kubectl rollout pause deployment <Deployment_name>
+kubectl rollout resume deployment <Deployment_name>
+
+Max number of revision that can be created in deployment?
+10 
+
+How to change the revision limit history in deployment?
+Example :
+---------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-first-deployment
+  labels:
+    app: myapp
+spec:
+    replicas: 5
+    revisionHistoryLimit: 15   
+
+Recreate Strategy:
+=================
+By using recreate strategy we can see some down time,as recreate will delete all the pods at once and 
+create new one.
+
+How to configure recreate strategy in YAML?
+==========================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: firstdeployment
+  labels:
+    appname: testapp
+
+spec:
+  replicas: 6
+  strategy:
+        type: Recreate      -->Recreate Deployment     
+
+  selector:
+    matchExpressions:
+      - key: env
+        operator: In
+        values: 
+          - prod
+  template:
+    metadata: 
+      name: firstpod
+      labels:
+        env: prod
+    spec: 
+      containers: 
+      - name: firstcontainer 
+        image: nginx
+        env:
+          - name: myname 
+
+Resource Request:
+================
+When we schedule a pod on any node without any resource request then it will automatically take the resource
+available on the node.
+Resource request will be RAM and CPU request.
+
+Why do we use resource request ?
+If suppose our pod needs 200MB of RAM then scheduler will check on which node the RAM is available 
+and then it will schedule the pod on that node only.
+
+Where to configure resource request?
+===================================
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: thirdpod
+  labels:
+    env: prod
+spec: 
+  containers: 
+  - name: firstcontainer 
+    image: nginx
+    env:
+      - name: myname
+    resources:
+      requests:
+        memory: 100M    --> 100 MB of RAM
+        cpu: 1		--> 1 core of CPU  
+		
+Note:
+CPU:
+requests.cpu: The amount of CPU resources the container requests. It can be specified in millicores (m) or cores (1).
+limits.cpu: The maximum amount of CPU resources the container can use.
+
+Memory:
+requests.memory: The amount of memory the container requests. It can be specified in bytes (B), kilobytes (Ki), megabytes (Mi), or gigabytes (Gi).
+limits.memory: The maximum amount of memory the container can use. 
+
+Resource Limits:
+===============
+Resource limit will ensures that container is not using more than the specified RAM and CPU.
+
+Example template:
+===============
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: thirdpod
+  labels:
+    env: prod
+spec: 
+  containers: 
+  - name: firstcontainer 
+    image: nginx
+    env:
+      - name: myname
+    resources:
+      requests:
+        memory: 100M
+        cpu: 1
+      limits:
+        cpu: 2 
+        memory: 200M
+		
+Namespaces in k8s:
+==================		
+In Kubernetes, namespaces provide a way to divide a cluster into virtual partitions or segments. 
+They act as a logical boundary that isolates and separates resources within a cluster.
+In Kubernetes,A cluster can be divided into multiple namespaces, and each namespace can have its own set of resources. 
+This helps organize and manage applications and services running in the cluster.
+By Default the pod what we have created will be created in "Default" namespace.
+
+Some important commands related to namespaces:
+==============================================
+kubectl get ns  --> List of name spaces
+kubectl create ns <name> --> To create namespace
+kubectl apply -f po.yml --namespace test  --> Create pod in ns
+kubectl get pods -n test --> to list pods in sn test.
+kubectl get pods --all-namespaces  --> To view the pods running in all namespaces.
+kubectl delete pod <pod_name> -n test  --> To delete pod from namespace test.
+kubectl api-resources  --> To check what all can be created inside namespace.
+kubectl delete ns <namesapce> --> To delete the name space
+kubectl config set-context --current --namespace=test --> To make test as default
+
+How to add namespace in yaml:
+============================
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: thirdpod
+  namespace: test    --> Namespace name
+  labels:
+    env: prod
+spec: 
+  containers: 
+  - name: firstcontainer 
+    image: nginx
+    env:
+      - name: myname
+
+Default namespaces available in k8s cluster:
+===========================================
+when we create k8s cluster then by default we can see 4 name spaces.
+             
+1)default
+This ns will get created when we try to create any object without mentioning namespace            
+2)kube-node-lease
+node lease is a mechanism for workers nodes to master about there health status and they are ready to take workloads.
+lease should be sent for every 60 secs,if lease is not renewed then master may be considered nodes as unhealthy or unresponsive.   
+3)kube-public
+serves as a central location for storing public resources that need to be accessed by all users and service accounts within a Kubernetes cluster.
+4)kube-system
+All the pods,management related stuff to create clusters are stored in kube-system   
+
+Uses of Deployment?
+1) If multiple teams working on deployments then we can create multiple name spaces for there project.
+2) Multiple environments app can be deployed in different namespaces.
+3) We can restrict the numbers of objects to get created in Namespaces.
+4) We can also provide resource limit in Namespaces.
+5) We can provide RBAC to namespaces for different users.
+
+Service DNS:
+===========
+In k8s service DNS, also known as the service discovery DNS, 
+is a built-in mechanism that allows communication between services using their names instead of their 
+IP addresses. Each service deployed in a Kubernetes cluster is assigned a DNS name that can be used by 
+other services to access it.
+
+The service DNS name follows a specific format:
+ <service-name>.<namespace>.svc.cluster.local.
+ 
+Use case: 
+We can use ServiceDNS to communicate between pods in two different namespaces.
+
+Ex:
+Create one pod in default namespace and attach a nodeport service to it.
+Create one pod is custom namespace and try to login to container and curl.
+
+Once created then connect to pod created in custom name space.
+kubectl exec -n test -it secondpod -- bash
+
+And then execute --> curl <servicename>
+it will get failed because of two different namespaces.
+We need to curl using ServiceDNS now --> curl <service-name>.<namespace>.svc.cluster.local
+
+Resource Quota in Namespace:
+===========================
+Resource quota in k8s helps us to enforce resource limits on namespace.
+We can restrict out namesapce with certain cpu,memory and storage.	 
+
+We have two types of resource quota.
+1) Resource based Quota.
+2) Compute based quota.
+
+Resource/object Based Quota:
+=====================
+In resource based quota we are going to set how many objects can be created in namespaces.
+Ex: pods,services,PVC,RS etc. which are supported by namespaces.
+
+Compute based Quota:
+====================
+In compute based quota we can restrict the namespace with certial CPU limits.
+
+How to create object based quota.yaml?
+=====================================
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: my-resource-quota
+spec:
+  hard:
+    pods: "2"
+
+How to apply quota?
+kubectl apply -f quota.yaml --namespace= test
+
+How to check the changes made?
+kubectl describe ns test
+
+How to create compute based quota.yaml?
+======================================
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: my-resource-quota
+spec:
+  hard:
+    requests.cpu: 0.5
+    requests.memory: 500Mi
+    limits.cpu : 1
+    limits.memory: 1Gi
+
+After creating compute based quota and trying to creating pod without any limits in podthen it will throw error.
+it is mandatory to create pod using limits for POD.
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: testpod
+
+spec: 
+  containers: 
+  - name: firstcontainer 
+    image: nginx
+    env:
+      - name: myname
+    resources:
+      requests:
+        memory: 250Mi
+        cpu: 0.1
+      limits:
+         cpu: 0.5
+         memory: 500Mi
+
+Note:
+If suppose we haven't set requests quota in pod then by default it will set the values configured in LIMITS.
+We can run our pod with setting Requests quota as well.		 
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: testpod
+
+spec: 
+  containers: 
+  - name: firstcontainer 
+    image: nginx
+    env:
+      - name: myname
+    resources:
+#      requests:
+#        memory: 250Mi
+#        cpu: 0.1
+      limits:
+         cpu: 0.5
+         memory: 500Mi
+		 
+Everytime adding resource requests and limits will be headache to add in YAML.
+TO avoid adding that each and everytime we can use LimitRange in k8s.
+
+LimitRange in k8s:
+==================
+The LimitRange resource in Kubernetes allows you to define default and maximum resource limits for 
+containers running within a namespace. 
+It helps ensure resource fairness and prevent containers from consuming excessive resources.		 
+
+How to create Limits:
+====================
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: testlimit
+spec:
+  limits:
+    - default:
+        cpu: 200m
+        memory: 500Mi
+      type: Container
+	  
+How to check?
+kubectl describe ns test
+
+Now we can see the default request and limit is same.
+If we want to put different values then use the below yaml file
+
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: testlimit
+spec:
+  limits:
+    - default:
+        cpu: 200m
+        memory: 500Mi
+      defaultRequest:
+        cpu: 100m
+        memory: 250Mi  
+      type: Container
+	  
+What is max and min in Limit range?
+===================================
+Min is used to allocate min amount of cpu and memory to a container.
+max is used to allocate max amount of cpu and memory to a container.
+
+Min should be always lesser or equal to default request.
+Max should be always greater or equal to default limit.
+
+Example:
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: testlimit
+spec:
+  limits:
+    - default:
+        cpu: 200m
+        memory: 500Mi
+      defaultRequest:
+        cpu: 100m
+        memory: 250Mi
+      min:
+        cpu: 100m
+        memory: 250Mi
+      max:
+        cpu: 500m
+        memory: 700Mi   
+      type: Container
+
+What is Max Limit/Request Ratio?
+===============================
+This will helps us to fix a ratio between max limit and max request.
+
+If suppose the Max Limit/Request ratio is set as 2
+and our max limit = 1000 and max request = 100 then
+1000/100 = 10 : value we have set is MAX 2 then it will not create the pod.
+
+How to set Max Limit/Request Ratio?
+==================================
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: testlimit
+spec:
+  limits:
+    - maxLimitRequestRatio:
+        memory: 2
+      type: Container
+	  
+Now try to create a pod using below yaml and it will get failed.
+
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: testpod
+
+spec: 
+  containers: 
+  - name: firstcontainer 
+    image: nginx
+    env:
+      - name: myname
+    resources:
+      requests:
+        memory: 100Mi
+      limits:
+        memory: 1000Mi
+		
+Config Maps:
+===========
+ConfigMaps in Kubernetes are used to store non-sensitive configuration data that 
+can be consumed by pods or other Kubernetes objects. They provide a way to decouple 
+configuration from application code, making it easier to manage and update configurations without 
+redeploying the application
+
+How to create configmap using imperative command:
+=================================================
+kubectl create cm <Config_map_name> --from-literal=database_ip=192.168.0.1
+
+How to check the configmaps:
+kubectl get cm
+kubectl describe configmap <config_map_name>   --> Details of configmaps
+
+if you want to add multiple details in configmaps then
+kubectl create cm <Config_map_name> --from-literal=database_ip=192.168.0.1 --from-literal=database_name=test
+--from-literal=database_password=test123
+
+If suppose we have 50 properties then it will be difficult to add them using --from-literal,
+so we have --from-file which can be used in such cases.
+
+Example:
+Create a directory configmaps
+Create a file with name application.properties and add all the properties.
+Create a configmap using the below command
+kubectl create cm <Config_map_name> --from-file=<file_name>  
+
+How to create multiple cm from multiple files?
+kubectl create cm <Config_map_name> --from-file=<file_name> --from-file=<File_name>
+
+If suppose we have 50 files then it will be difficult to add them using --from-literal,--from-file
+so we have --from-directory which can be used in such cases.
+
+Example:
+Create a directory properties
+Create multiple files with anyname add all the properties.
+Create a configmap using the below command
+kubectl create cm <Config_map_name> --from-file=<folder_name>
+
+Config maps using env file?
+In env file the varibale name should not start with any numberic letter.
+How to create a configmap using env file?
+Create a file env.sh and add some details as given below
+#environment variables
+
+variable1=value1
+variable2=value2
+
+Execute below command to create one configmap
+kubectl create cm evn --from-env-file=env.sh
+
+Difference between --from-file and --from-env-file?
+In env-file the data count will be number of variables we have passed and also it will not consider spaces and
+filename.
+In from-file we can see the data count as 1 only because it copy the complete content of the file.
+
+ConfigMap from YAML:
+===================
+Quicly write any file by using -o yaml.
+kubectl create cm configmap --from-literal=database_ip=192.168.0.1 --dry-run=client -o yaml > config.yaml
+
+Literal configmap yaml file:
+============================
+apiVersion: v1
+data:
+  key1: value1
+  key2: value2
+  key3: value3
+kind: ConfigMap
+metadata:
+   name: configmap
+   
+File Configmap yaml file:
+=========================
+Quicly write any file by using -o yaml.
+kubectl create cm configmap --from-file=application.properties --dry-run=client -o yaml > config.yaml
+apiVersion: v1
+data:
+  application.properties: |
+    #environment variables
+
+    variable1=value1
+    variable2=value2
+kind: ConfigMap
+metadata:
+  name: configmap
+ 
+Directory configmap yaml file:
+==============================
+kubectl create cm configmap --from-file=properties --dry-run=client -o yaml > config.yaml 
+
+apiVersion: v1
+data:
+  test1: "#environment variables from file test1\r\n\r\nvariable1=value1\r\nvariable2=value2\r\n"
+  test2: "#environment variables from file test2\r\n\r\nvariable1=value1\r\nvariable2=value2"
+kind: ConfigMap
+metadata:
+  name: configmap
+
+Env.sh configfile yaml file:
+===========================
+kubectl create cm configmap --from-env-file=env.sh --dry-run=client -o yaml > config.yaml
+apiVersion: v1
+data:
+  variable1: value1
+  variable2: value2
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: configmap  
+
+Inject Configmaps in pods:
+==========================
+We can find our config maps in two ways inside our pod
+1) As env variables.
+2) As files
+
+Inject CM as env varibales:
+==========================
+1) Create config map using env.sh
+kubectl create cm env --from-env-file=env.sh
+2) Pod definition using configmap.
+
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: firstpod
+  labels:
+    env: prod
+spec: 
+  containers: 
+  - name: firstcontainer 
+    image: nginx
+    imagePullPolicy: Never            #It will not try to pull the latest image from internet
+    env:     
+     - name: variablefromcm           #name of environemnt variable
+       valueFrom:         
+         configMapKeyRef: 
+           key: variable2             #In key which variable vallue you want to store.
+           name: env                  #Config map name
+		   
+How to test this ?
+kubectl exec -it firstpod env
+
+If we want to inject multiple values?
+===================================
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: firstpod
+  labels:
+    env: prod
+spec: 
+  containers: 
+  - name: firstcontainer 
+    image: nginx
+    imagePullPolicy: Never
+    env:
+     - name: variablefromcm
+       valueFrom:
+         configMapKeyRef:
+           key: variable2
+           name: env
+     - name: variablefromcm2
+       valueFrom:
+         configMapKeyRef:
+           key: variable1
+           name: env      		   
+How to inject all values of cm into pod?
+========================================
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: firstpod
+  labels:
+    env: prod
+spec: 
+  containers: 
+  - name: firstcontainer 
+    image: nginx
+    imagePullPolicy: Never
+    envFrom:           #To get all the values as environemnt variables inside pod of configmap env
+      - configMapRef:
+          name: env
+
+Inject config maps as files:
+============================
+If suppose we need to copy the varibales inside a pod as a file then we can use comfigmaps as files.
+This to be copied interms of volumes.
+
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: firstpod
+spec: 
+  containers: 
+  - name: firstcontainer 
+    image: nginx
+    imagePullPolicy: Never
+    volumeMounts:                #mount point of volume
+      - mountPath: "/config"      #directory inside pod where the variables will be copied
+        name: test                #name of our volume
+        readOnly: true     
+  volumes:
+    - name: test                  #volume name
+      configMap:
+        name: env                #config map name
+		  
+If you want to inject specific variable as files in pod:
+=======================================================
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: firstpod
+spec: 
+  containers: 
+  - name: firstcontainer 
+    image: nginx
+    imagePullPolicy: Never
+    volumeMounts:
+      - mountPath: "/config"
+        name: test
+        readOnly: true
+  volumes:
+    - name: test
+      configMap:
+        name: env
+        items:
+          - key: varibale1
+            path: "variablehere"
+			
+Secrets:
+=======
+Secrets in k8s is used to store small amount of secure data like passwords.
+Small amount of data can be upto 1MB of size.
+When ever we try to create any secret then it will be converted into base64 and stored.
+Secrets Will be again of 3 types:
+1) Docker-registry
+2) Generic
+3) tls
+
+Most commonly used will be generic.
+
+Secrets can be created in different ways same as configmaps like
+--from-literal
+--from-file
+--from-env-file and 
+from directory.
+
+How to create a secret?
+kubectl create secret generic <secret_name> --from-literal=name=sabair
+
+Kubectl get secrets --> to get the list of secrets.
+kubectl describe secret <secret_name> --> To view the details of secret
+kubectl get secret <secret_name> -o yaml --> To see a basic yaml file related to secret.
+
+kubectl create secret generic <secret_name> --from-file=<file_name>
+kubectl create secret generic <secret_name> --from-file=<folder_name>
+kubectl create secret generic <secret_name> --from-env-file=env.sh
+
+How to get the encoded value ?
+echo -n "Value" | base64
+
+How to create secrete using yaml?
+kubectl create secret generic first --from-literal=name=sabair --from-literal=password=Devops@123 --dry-run=client  -o yaml
+
+apiVersion: v1
+data:
+  name: c2FiYWly
+  password: QWxpbmFAMDUwOQ==
+kind: Secret
+metadata:
+  name: first
+  
+How to inject secret in pod as environments?
+===========================================  
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: firstpod
+  labels:
+    env: prod
+spec: 
+  containers: 
+  - name: firstcontainer 
+    image: nginx
+    imagePullPolicy: Never            #It will not try to pull the latest image from internet
+    env:     
+     - name: variablefromSecret           #name of environemnt variable
+       valueFrom:         
+         secretKeyRef:
+           key: password             #In key which variable vallue you want to store.
+           name: first                 #Secret  name
+		   
+If we want to inject multiple values?
+===================================
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: firstpod
+  labels:
+    env: prod
+spec: 
+  containers: 
+  - name: firstcontainer 
+    image: nginx
+    imagePullPolicy: Never            #It will not try to pull the latest image from internet
+    env:     
+     - name: password           #name of environemnt variable
+       valueFrom:         
+         secretKeyRef:
+           key: password             #In key which variable vallue you want to store.
+           name: first                 #Secret  name
+     - name: name           #name of environemnt variable
+       valueFrom:         
+         secretKeyRef:
+           key: name            
+           name: first           	   
+
+How to inject all values of secrets into pod?
+========================================
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: firstpod
+  labels:
+    env: prod
+spec: 
+  containers: 
+  - name: firstcontainer 
+    image: nginx
+    imagePullPolicy: Never
+    envFrom:                         #To get all the values as environemnt variables inside pod of secret env
+      - secretRef:
+          name: env		   
+
+Inject Secrets as files:
+============================
+If suppose we need to copy the varibales inside a pod as a file then we can use secrets as files.
+This to be copied interms of volumes.
+
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: firstpod
+spec: 
+  containers: 
+  - name: firstcontainer 
+    image: nginx
+    imagePullPolicy: Never
+    volumeMounts:                #mount point of volume
+      - mountPath: "/secret"      #directory inside pod where the variables will be copied
+        name: test                #name of our volume
+        readOnly: true     
+  volumes:
+    - name:                  #volume name
+      secret:
+        secretName: first              #Secret name		 
+
+If you want to inject specific variable as files in pod:
+=======================================================
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: firstpod
+spec: 
+  containers: 
+  - name: firstcontainer 
+    image: nginx
+    imagePullPolicy: Never
+    volumeMounts:                #mount point of volume
+      - mountPath: "/secret"      #directory inside pod where the variables will be copied
+        name: test                #name of our volume
+        readOnly: true     
+  volumes:
+    - name: test                  #volume name
+      secret:
+        secretName: first              #Secret name	
+        items:
+          - key: password             #secret name
+            path: password	 
+
+Taint and Tolerations:
+=====================
+Taint and Tolerations are advance k8s pod scheduling technique.
+Taint are attached to Node.
+Toleration are attached to Pods.
+
+Taint in general terms means a filter.
+Tolerations with matching taint will be scheduled on tainted node.
+Tolerations allow the scheduler to schedule pods with matching taints.
+
+Example:
+Nodes with special hardware. if you have nodes with special hardware (e.g GPUs) 
+you want to repel Pods that do not need this hardware and attract Pods that do need it. 
+This can be done by tainting the nodes that have the specialized hardware 
+(e.g. kubectl taint nodes nodename special=true:NoSchedule ) and adding corresponding toleration
+to Pods that must use this special hardware.	
+
+How to apply taint to node ?
+kubectl taint nodes <node_name> special=true:NoSchedule
+
+The taint has the format <taintKey>=<taintValue>:<taintEffect> . 
+Thus, the taint we just created has the key “special“, the value “true“, and the taint effect NoSchedule. 
+A taint’s key and value can be any arbitrary string and the taint effect should be one of the supported taint 
+effects such as NoSchedule , NoExecute , and PreferNoSchedule .
+NoSchedule: No pod will be scheduled on the node.
+PreferNoschedule: No guarantee that pod will not be scheduled on the node,there might be chance that pod might get scheduled.
+NoExecute: If any pods are already running on tainted nodes then it will delete the running pods
+After adding taint, try to create pods then it will be created on other node only.
+
+How to add toleration to pod using operator Equal ?
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: firstpod
+spec: 
+  containers: 
+  - name: firstcontainer 
+    image: nginx
+    imagePullPolicy: Never
+  tolerations:
+    - key: "special"
+      operator: "Equal"        #if we haven's sepecied operator then it will pick default as Equal only.
+      value: "true"            #Operator value can be Equal or Exists 
+      effect: "NoSchedule"
+	  
+How to untaint the pod?
+kubectl taint nodes <node_name> special=true:NoSchedule-
+
+How to taint pod using PreferNoSchedule?
+kubectl taint nodes <node_name> special=true:PreferNoSchedule
+
+How to taint pod using NoExecute?
+kubectl taint nodes <node_name> special=true:NoExecute
+
+How to add toleration to pod using operator Exists ?
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: firstpod
+spec: 
+  containers: 
+  - name: firstcontainer 
+    image: nginx
+    imagePullPolicy: Never
+  tolerations:
+    - key: "special"
+      operator: "Exists"        #if we haven's sepecied operator then it will pick default as Equal only.
+      effect: "NoSchedule"
+
+In Exists it will check if any key with value special is there not and it will apply toleration.
+
+We can use toleration seconds in tolerations of yaml if the effect is "NoExecute"
+
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: firstpod
+spec: 
+  containers: 
+  - name: firstcontainer 
+    image: nginx
+    imagePullPolicy: Never
+  tolerations:
+    - key: "special"
+      operator: "Exists"           #Operator value can be Equal or Exists 
+      effect: "NoExecute"
+      tolerationSeconds: 60     #Pod will tolerate for 60 seconds and get terminated.
+
+Node Selector:
+=============
+Node selector helps us to select node where the pod can be scheduled.
+It will work based on the label attached to node.
+How to attach label to node ?
+kubectl label nodes <node_name> env=prod
+
+How to run a pod in that node?
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: firstpod
+spec: 
+  containers: 
+  - name: firstcontainer 
+    image: nginx
+    imagePullPolicy: Never
+  nodeSelector:
+    env: prod
+
+Node Affinity:
+=============
+Node affinity is a set of rules used by the scheduler to determine where a pod can be placed.
+
+Two types of Node Affinity is available:
+1) PreferredDuringSchedulingIgnoredDuringExecution (Soft Scheduling):
+Means we are asking scheduler to check if the values/label is matching then schedule pod on the node and
+if node with same label is not available then it will schedule on any available node.
+Ignored During Execution means if the pod is already scheduled on node and later on we have removed the label then
+the pod will be ingored and continue running on the same node.
+
+How to create pod using YAML?
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: firstpod
+spec: 
+  containers: 
+  - name: firstcontainer 
+    image: nginx
+    imagePullPolicy: Never
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - preference:
+            matchExpressions:
+              - key: env
+                operator: In 
+                values:
+                  - test
+          weight: 1
+		  
+2) RequiredDuringSchedulingIgnoredDuringExecution (Hard Scheduling):
+Means we are asking scheduler to check if the values/label is matching then schedule pod on the node.
+If not matched then pod will not be scheduled in other nodes.
+Ignored During Execution means if the pod is already scheduled on node and later on we have removed the label then
+the pod will be ingored and continue running on the same node.
+
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: secondpod
+spec: 
+  containers: 
+  - name: firstcontainer 
+    image: nginx
+    imagePullPolicy: Never
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: env        #label name
+                operator: In   #Values for operator can be IN,NotIn
+                values:
+                  - test    # label value
+				  
+Try to Remove label and check IgnoredDuringExecution:
+kubectl label node <node_name> <label_name>-
+
+If you will check kubectl get pods
+Pods will be still up and running.
+
+K8s Volumes:
+===========
+Volumes in k8s are used to store persistent data.
+We have two types of pods one is stateful,other can be stateless.
+Stateful: In simple terms sateful applications can be storing any data.
+Stateless: In simple terms stateless applications will not be storing any data.
+
+We Will be using 4 different types of volumes in k8s.
+1) EmptyDIr:
+============
+We create volume inside a pod to store data related to container.
+If the container is killed for any reason, a new container will be created in the same pod and 
+the same volume will be attached to container.
+Example:
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: firstpod
+spec: 
+  containers: 
+  - name: firstcontainer 
+    image: nginx
+    volumeMounts:
+      - mountPath: /data  #Directory inside container
+        name: first-volume   #any logical name
+  volumes:
+    - name: first-volume
+      emptyDir: {}   #Blank Object
+
+How to test:
+1) Login to container and create some random files in /data location.
+2) Create some random files in tmp location.
+3) Stop nginx service to terminate your container.
+4) Now you can see pod will create a new container and try to login into container
+5) Validate the files in both the locations.
+6) Files in directory /data will be visible.	  
+
+Note: 
+Problem with empty dir is if the pod got deleted then we will be loosing all our data.
+	  	  
+2) Hostpath:
+===========
+We create volume on hostpath, means volume will be created outside pod.
+If pod get deleted and a new pod is created then it can access the volume available on the host.
+Example:
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: firstpod
+spec: 
+  containers: 
+  - name: firstcontainer 
+    image: nginx
+    volumeMounts:
+      - mountPath: /data  #Directory inside container
+        name: first-volume   #any logical name
+  volumes:
+    - name: first-volume
+      hostPath:
+        path: /tmp/data   # Path inside host machine (Minikube)
+		
+How to test:
+1) Login to container and create some random files in /data location.
+2) Login to minikube and check if the files are available in /tmp/data.
+4) Now delete the pod and create a new pod.
+5) Login to new pod and check if files are available in data directory.
+Note: 
+If we have multiple nodes then we will other nodes will not be able to access the volume 
+created on node.
+
+3) Amazon Elastic Block Storage:
+===============================
+If we have multinode k8s cluster,then in this case we need to keep our volume outside the cluster.
+If our pod is created on other node then the volume should also be moved to that node.
+We have already setup our 3 node k8s cluster.
+1) Login to aws and create on ebs volume in the same region of cluster.
+2) Create one IAM role for aws-ebs-csi-driver
+Search for = AmazonEBSCSIDriverPolicy and create one role and attach to all the nodes in k8s cluster.
+
+3)Install AWS EBS CSI driver on k8s master node.
+#) git clone https://github.com/kubernetes-sigs/aws-ebs-csi-driver.git
+#) cd aws-ebs-csi-driver
+#) kubectl apply -k deploy/kubernetes/overlays/stable/
+#) kubectl get pods -n kube-system    #To verify the driver is installed and running.
+
+4) Now we need to create one Persistent volume for our EBS.
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: my-ebs-pv
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: aws-ebs
+  awsElasticBlockStore:
+    volumeID: <your-ebs-volume-id>     #EBS volume ID
+    fsType: ext4
+	
+kubectl apply -f pv.yaml  #to create PV
+
+
+5) We need to create on claim for Persistent volume (PVC) for our EBS.
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: my-ebs-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: aws-ebs
+
+kubectl apply -f pvc.yaml  #to create PVC
+
+6) Create pod with PVC.
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-pod
+spec:
+  containers:
+    - name: my-container
+      image: nginx
+      volumeMounts:
+        - name: data-volume
+          mountPath: /data           #data where we can write data
+  volumes:
+    - name: data-volume
+      persistentVolumeClaim:
+        claimName: my-ebs-pvc       #PVC Name
+
+kubectl apply -f pod.yaml  #To create pod with pv
+
+How to test:
+1) Once pod is created then we can check the volume as it will show in use status.
+2) Delete the pod and try to see the status of volume.
+3) Create new pod again and this time if it is scheduled on another node then volume will be attached to that node.
+Note: 
+Here we can map multiple pods to the volumes but we cannot map two pods to same volume at same point of time.
+
+AccessModes are of three types
+1)ReadWriteOnce (RWO):
+This mode allows the volume to be mounted as read-write by a single Node.
+It is suitable for scenarios where only one Node needs read-write access to the volume, 
+such as with a single-instance database.
+
+2)ReadOnlyMany (ROX):
+This mode allows the volume to be mounted as read-only by multiple Nodes simultaneously.
+It is suitable for scenarios where multiple Nodes need read-only access to the volume, 
+such as for shared logs or configuration files.
+
+3)ReadWriteMany (RWX):
+This mode allows the volume to be mounted as read-write by multiple Nodes simultaneously.
+It is suitable for scenarios where multiple Nodes need read-write access to the volume, 
+such as shared file systems or distributed applications.
+
+Retain policy is of three types
+1)Retain (default):
+With this policy, the PV is not automatically deleted or modified when released.
+The administrator is responsible for manually deleting or modifying the PV to make it available for reuse.
+
+2)Delete:
+With this policy, the PV is automatically deleted and the underlying storage resources are released when the 
+PVC is deleted.
+The data in the PV will be permanently lost.
+
+3)Recycle (deprecated):
+This policy is being deprecated and is not recommended for use.
+With this policy, the PV's contents are not cleared or deleted when released.
+The PV can be reused by a new PVC after the previous PVC is deleted, but the data remains intact
+
+4) Amazon Elastic File Storage:
+===============================
+If we have multinode k8s cluster,then in this case we need to keep our volume outside the cluster.
+If our pod is created on other node then the volume should also be moved to that node.
+We have already setup our 3 node k8s cluster.
+1) Login to aws and create on efs volume.
+2) Create one access point to your efs volume.
+3)Install AWS EFS CSI driver on k8s master node.
+#) git clone https://github.com/kubernetes-sigs/aws-efs-csi-driver.git
+Apply the CSI Driver Manifests: Navigate to the cloned repository and apply the 
+Kubernetes manifests using the kubectl apply command:
+# cd aws-efs-csi-driver/deploy/kubernetes/overlays/stable/
+# kubectl apply -k .
+verify the installation.
+#kubectl get pods -n kube-system -l app=efs-csi-controller
+#kubectl get pods -n kube-system -l app=efs-csi-node
+Create EFS Provisioner Storage Class: To dynamically provision EFS volumes, 
+you need to create a StorageClass that uses the EFS CSI driver. 
+storageclass.yaml
+=================
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: efs-sc
+provisioner: efs.csi.aws.com
+
+kubectl apply -f storageclass.yaml  #To create storage class
+
+4) Now we need to create one Persistent volume for our EFS.
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: efs-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: efs-sc                #storage class name
+  csi:
+    driver: efs.csi.aws.com        #Efs csi driver name
+    volumeHandle: <efs-file-system-id>::<efs-access-point-id>  #file system id and access point id
+	
+kubectl apply -f pv.yaml  #to create PV
+
+5) We need to create on claim for Persistent volume (PVC) for our EBS.
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: efs-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: efs-sc
+  resources:
+    requests:
+      storage: 5Gi
+
+kubectl apply -f pvc.yaml  #to create PVC
+
+6) Create pod with PVC.
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: efs-pod
+spec:
+  containers:
+    - name: my-app
+      image: nginx  
+      volumeMounts:
+        - name: efs-volume   
+          mountPath: /efs-mount          #mount directory inside filesystem
+  volumes:
+    - name: efs-volume
+      persistentVolumeClaim:
+        claimName: efs-pvc           #PVC name
+
+kubectl apply -f pod.yaml  #To create pod with pv
+
+How to test:
+1) Create one pod and login to pod and create some random files in efs-mount directory.
+2) Create one more pod and check if the files are available or not
+3) We can now connect multiple pods to same volume.
+Note: 
+Here we can map multiple pods to same EFS volume.
+EFS cost is 3time higher to EBS.
+
+Daemon Set in k8s:
+=================
+DaemonSet is a type of workload that ensures that a specific pod is running on each node in a cluster. 
+It is useful for scenarios where you need to run a single instance of a pod on every node, such as log 
+collection or monitoring agents.
+
+Example:
+========
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: example-daemonset
+spec:
+  selector:
+    matchLabels:
+      app: sample-app
+  template:
+    metadata:
+      labels:
+        app: sample-app
+    spec:
+      containers:
+        - name: samplenginx
+          image: nginx
+
+Liveness Probe:
+==============
+Liveness can use with pod configuration to check the health status of pod.
+If pod in not healthy for any reason then Liveness will restart the pod.
+Example:
+=======
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-pod
+spec:
+  containers:
+  - name: my-app
+    image: nginx            #Image Name
+    ports:
+    - containerPort: 80       
+    livenessProbe:
+      httpGet:              #get request or we can use tcpSocket, or exec
+        path: /              #health check path
+        port: 80     
+      initialDelaySeconds: 15    #It will wait 15 second before applying first liveness
+      periodSeconds: 10          #Every 10 seconds the liveness will be checked.
+	  
+How to test?
+Create pod using above yaml and use describe to check the liveness.
+or create one yaml with wrong container ports.
+Example: 
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-pod
+spec:
+  containers:
+  - name: my-app
+    image: nginx            #Image Name
+    ports:
+    - containerPort: 8080       
+    livenessProbe:
+      httpGet:              #get request or we can use tcpSocket, or exec
+        path: /              #health check path
+        port: 8080     
+      initialDelaySeconds: 15    #It will wait 15 second before applying first liveness
+      periodSeconds: 10          #Every 10 seconds the liveness will be checked.	  
+
+Readiness Probe:
+===============
+Readiness can use with pod configuration to check the if the application running in the pod is ready to serve traffic.
+If pod in not healthy for any reason then Readiness will remove the pod from endpoints and it will be in "not Ready" status.
+Example:
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-pod
+spec:
+  containers:
+  - name: my-app
+    image: nginx
+    ports:
+    - containerPort: 80
+    readinessProbe:
+      httpGet:
+        path: /index.html
+        port: 80
+      initialDelaySeconds: 10
+      periodSeconds: 5
+
+How to test ?
+Login to the pod and delete the index.html file
+Execute kubectl get pods -wait
+We can now see pod is not ready status.	  
+
+Ingress:
+========
+Ingress will helps us to expose the applciations and manage
+external access by providing http/https routing rules to the services
+within a k8s cluster.
+
+Ingress controller:
+==================
+Nothing but a load balancer which is responsible for implementing and managing Ingress resources.
+
+We have multiple load balancer in market like
+NGINX
+A10
+F5
+Traefik
+HA PROXY
+
+Ingress is developed by k8s.
+Ingress controller is developed by the load balancer companies.
+
+Why should we use Ingress?
+prior to ingress we were using load balancer service to expose our application
+to outside world,but it only provides round robin algorith.
+
+There were couple of issues for applicaitons,
+for example if we have 100 services then we need to create 100 services.
+It will not support different features which our load balancer's were doing.
+Like path based routing,rules,whitelisting,blacklisting,tls,sticky session,hostbasedrouting.
+
+To over come the problem Ingress has been introduced to k8s.
+
+What needs to be done by user?
+1) He needs to create one ingress.
+2) He needs to create ingress controller based upon the features/capabalities we need.
+
+To access from minikube:
+=======================
+minikube service <Service-name> --url
+
+To enable ingress on minikube:
+==============================
+minikube addons enable ingress
+
+minikube tunnel --> to open connections for services
+
+Deployment.yml:
+===============
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+
+Service.yml
+===========
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+spec:
+  selector:
+    app: nginx
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+      nodePort: 30001
+  type: NodePort
+
+Ingress.yml
+===========
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx-ingress
+spec:
+  rules:
+  - host: example.com 
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: nginx-service
+            port:
+              number: 80
+
+
+
+
+
+
+
+				  
